@@ -3,7 +3,7 @@
 > 
 > 💡 功能支持：✅根据关键词筛选红人 ✅根据国家地区筛选红人 ✅根据粉丝数范围筛选红人
 > 
-> 🔗 下载链接：[点这里](https://github.com/mashukui/youtube_user/releases)下载最新版
+> [⬇️下载最新版](https://github.com/mashukui/youtube_user/releases/) | [🎬使用演示](https://www.bilibili.com/video/BV1suDUBuEoi/) |  [💳开通使用](https://mgnb.pro/product/youtube_user)
 
 <p align="center">
 <a href="README.md">简体中文 README</a> | <a href="README.en.md">English README</a>
@@ -127,7 +127,7 @@ def get_logger(self):
 	return self.logger
 ```
 
-# 三、使用介绍
+# 三、快速开始
 ## 3.1 配置API key
 如前言所说，软件已升级为全新的2.0版本-调用YouTube官方api采集接口数据，软件运行前，需配置好个人申请的API key。
 
@@ -147,7 +147,7 @@ key配置好后，就可以采集了（记得打开网络，你懂得）
  
 点击开始执行按钮，软件就自动批量采集了。
 ## 3.3 填写建议
-- **1、搜索关键词**
+**1、搜索关键词**
 
 行业名、品牌名、竞品词、多词组合--找到在该领域发内容的博主
 
@@ -160,7 +160,7 @@ key配置好后，就可以采集了（记得打开网络，你懂得）
 | 蹭热点 | 用**当下热门话题** | 短时间内找到最新活跃博主 |
 | 多词组合 | "beauty tutorial \| skincare review" | 一次采多个方向的博主 |
 ____
-- **2、国家/地区**
+**2、国家/地区**
 
 填写支持中文/英文，如不确定，内附标准国家名称表《country.json》供参考。
 
@@ -173,7 +173,7 @@ ____
 | 规避竞争 | 选**小语种国家**（法国/德国/巴西）| 红海中的蓝海 |
 | 批量采集 | **留空**（不限制国家）| 最大范围采集，不漏任何博主 |
 ____ 
-- **3、粉丝数范围**
+**3、粉丝数范围**
 
 通过粉丝数范围，精准定位博主量级，快速达成链接合作。
 
@@ -187,11 +187,11 @@ ____
 | **500万+** | 超级博主 | 顶奢品牌专属，普通人基本用不起 |
 
 ____
-- **一句话总结，怎么用好筛选条件**
+**一句话总结，怎么用好筛选条件?**
 
 关键词决定找什么内容的博主，国家决定找哪个市场的博主，粉丝数决定找什么级别的博主。三个条件配合使用，才能精准锁定目标，节省时间和成本。
 # 四、演示视频
-软件使用过程完整演示视频：[【爬虫演示】油管红人采集软件](https://mp.weixin.qq.com/s/Pn6QrsQ1YTYAao3DWWYovg)
+软件使用过程完整演示视频：[【爬虫演示】油管红人采集软件](https://www.bilibili.com/video/BV1suDUBuEoi/)
 
 # 四、付费说明
 ## 4.1 卡密说明
@@ -215,5 +215,6 @@ ____
 
 # 五、软件获取
 公众号"**老男孩的平凡之路**"，后台回复"**爬油管博主**"获取最新版软件安装包。[点这里直接下载](https://github.com/mashukui/youtube_user/releases)
-<img width="1938" height="364" alt="二维码-公众号放底部v2" src="https://github.com/user-attachments/assets/5ae8b283-0c5f-48e8-a909-d91dcb09210a" />
+
+<img alt="二维码-公众号放底部v3" src="https://github.com/user-attachments/assets/de15358e-2ac0-4f63-b98c-43f0a6392bb7" />
 
