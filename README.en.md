@@ -253,4 +253,4 @@ The software is independently developed and maintained by the author, with long-
 
 Reply `爬油管博主` in the WeChat official account `老男孩的平凡之路` to get the latest software package. [Download directly here](https://github.com/mashukui/youtube_user/releases)
 
-<img alt="WeChat official account QR code" src="https://github.com/user-attachments/assets/de15358e-2ac0-4f63-b98c-43f0a6392bb7" />
+<img width="573" height="196" alt="二维码-公众号放底部v4" src="https://github.com/user-attachments/assets/19cd7f46-dc67-4b65-a176-f5000dfaed1b" />
