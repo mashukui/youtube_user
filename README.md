@@ -216,5 +216,4 @@ ____
 # 五、软件获取
 公众号"**老男孩的平凡之路**"，后台回复"**爬油管博主**"获取最新版软件安装包。[点这里直接下载](https://github.com/mashukui/youtube_user/releases)
 
-<img alt="二维码-公众号放底部v3" src="https://github.com/user-attachments/assets/de15358e-2ac0-4f63-b98c-43f0a6392bb7" />
-
+<img width="573" height="196" alt="二维码-公众号放底部v4" src="https://github.com/user-attachments/assets/2ecd3416-446b-47b2-8378-3887a248b4a7" />
