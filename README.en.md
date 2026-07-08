@@ -4,7 +4,7 @@
 >
 > 💡 Features: ✅ filter influencers by keyword ✅ filter by country/region ✅ filter by subscriber range
 >
-> [⬇️Download Latest Release](https://github.com/mashukui/youtube_user/releases/) | [🎬Video Demo](https://www.bilibili.com/video/BV1suDUBuEoi/) | [💳Purchase Access](https://mgnb.pro/product/youtube_user)
+> [⬇️Download Latest Release](https://github.com/mashukui/youtube_user/releases/) | [🎬Video Demo](https://www.bilibili.com/video/BV1suDUBuEoi/) | [🏠Homepage](https://mashukui.github.io/youtube_user/) | [💳Purchase Access](https://mgnb.pro/product/youtube_user)
 
 <p align="center">
   <a href="README.md">简体中文 README</a> | <a href="README.en.md">English README</a>
