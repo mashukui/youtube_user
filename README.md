@@ -3,7 +3,7 @@
 > 
 > 💡 功能支持：✅根据关键词筛选红人 ✅根据国家地区筛选红人 ✅根据粉丝数范围筛选红人
 > 
-> [⬇️下载最新版](https://github.com/mashukui/youtube_user/releases/) | [🎬使用演示](https://www.bilibili.com/video/BV1suDUBuEoi/) |  [💳开通使用](https://mgnb.pro/product/youtube_user)
+> [⬇️下载最新版](https://github.com/mashukui/youtube_user/releases/) | [🎬使用演示](https://www.bilibili.com/video/BV1suDUBuEoi/) | [🏠产品主页](https://mashukui.github.io/youtube_user/) | [💳开通使用](https://mgnb.pro/product/youtube_user)
 
 <p align="center">
 <a href="README.md">简体中文 README</a> | <a href="README.en.md">English README</a>
