@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 红人采集 - YouTube Influencer Crawler</title>
+    <style>
+        :root {
+            --red: #ff0000;
+            --dark: #1a1a2e;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #333333;
+            --muted: #666666;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ── Language Switcher ── */
+        .lang-switcher {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            gap: 4px;
+            background: rgba(255,255,255,.85);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.12);
+        }
+        .lang-btn {
+            border: none;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: var(--muted);
+            transition: all .2s;
+            font-family: inherit;
+        }
+        .lang-btn.active {
+            background: var(--red);
+            color: #fff;
+        }
+        .lang-btn:hover:not(.active) {
+            background: #fee;
+            color: var(--red);
+        }
+
+        html[lang="zh-CN"] .lang-en { display: none !important; }
+        html[lang="en"] .lang-zh { display: none !important; }
+
+        /* ── Hero ── */
+        .hero {
+            background: linear-gradient(135deg, #cc0000 0%, #ff0000 50%, #ff4444 100%);
+            color: #fff;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.2; }
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+        .hero p {
+            font-size: 1.15rem;
+            opacity: .92;
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        .hero .badges {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .hero .badge {
+            background: rgba(255,255,255,.2);
+            backdrop-filter: blur(6px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: .9rem;
+        }
+        .hero .cta-btn {
+            display: inline-block;
+            margin-top: 1.8rem;
+            background: #fff;
+            color: var(--red);
+            padding: 14px 48px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .hero .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,.2);
+        }
+        .hero .cta-sub {
+            display: block;
+            margin-top: .5rem;
+            font-size: .85rem;
+            opacity: .75;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+        }
+
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        }
+        .section h2 {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .section h2 .icon { font-size: 1.3rem; }
+        .section h3 {
+            font-size: 1.1rem;
+            margin: 1.2rem 0 .5rem;
+            color: var(--dark);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .feature-card {
+            background: #fafafa;
+            padding: 1.2rem;
+            border-radius: 10px;
+            border-left: 3px solid var(--red);
+        }
+        .feature-card h4 { font-size: 1rem; margin-bottom: .4rem; }
+        .feature-card p { font-size: .9rem; color: var(--muted); }
+
+        .steps { counter-reset: step; }
+        .step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: .8rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            counter-increment: step;
+            background: var(--red);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .9rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .step-body h4 { font-size: 1rem; margin-bottom: .2rem; }
+        .step-body p { color: var(--muted); font-size: .9rem; }
+        .step-body a { color: var(--red); }
+
+        .screenshots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        .screenshot-card {
+            background: #fafafa;
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: center;
+        }
+        .screenshot-card img {
+            width: 100%;
+            display: block;
+            border-bottom: 1px solid #eee;
+        }
+        .screenshot-card .caption {
+            padding: .8rem;
+            font-size: .9rem;
+            color: var(--muted);
+        }
+
+        /* ── Filter tips table ── */
+        .tip-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+            margin: .8rem 0 1.2rem;
+        }
+        .tip-table th {
+            background: #fafafa;
+            padding: .6rem .8rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--red);
+        }
+        .tip-table td {
+            padding: .6rem .8rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        .tip-table tr:hover td { background: #fff5f5; }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: .8rem;
+        }
+        .price-card {
+            background: #fafafa;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: border-color .2s;
+        }
+        .price-card:hover { border-color: var(--red); }
+        .price-card.featured {
+            border-color: var(--red);
+            background: #fff5f5;
+        }
+        .price-card .name { font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; }
+        .price-card .duration { font-size: .8rem; color: var(--muted); margin-bottom: .8rem; }
+        .price-card .money { font-size: 1.6rem; font-weight: 800; color: var(--red); }
+        .price-card .money span { font-size: .8rem; font-weight: 400; }
+        .price-card .scene { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+
+        .faq-item {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: .8rem;
+            overflow: hidden;
+        }
+        .faq-q {
+            background: #fafafa;
+            padding: 1rem 1.2rem;
+            font-weight: 600;
+            font-size: .95rem;
+        }
+        .faq-a {
+            padding: 1rem 1.2rem;
+            font-size: .9rem;
+            color: var(--muted);
+            border-top: 1px solid #eee;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: .6rem;
+        }
+        .tech-item {
+            background: #fafafa;
+            padding: .7rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: .85rem;
+        }
+        .tech-item strong { display: block; font-size: .95rem; margin-bottom: .1rem; }
+
+        .highlight-box {
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            margin: 1rem 0;
+        }
+        .highlight-box p { margin: 0; font-size: .9rem; }
+
+        .footer-cta {
+            background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+            color: #fff;
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 2rem;
+            border-radius: 12px;
+        }
+        .footer-cta h3 { font-size: 1.4rem; margin-bottom: .5rem; }
+        .footer-cta p { opacity: .8; margin-bottom: 1.5rem; }
+        .footer-cta a {
+            display: inline-block;
+            background: var(--red);
+            color: #fff;
+            padding: 14px 48px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform .15s;
+        }
+        .footer-cta a:hover { transform: scale(1.03); }
+
+        .site-footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #aaa;
+            font-size: .85rem;
+        }
+        .site-footer a { color: #999; text-decoration: none; }
+
+        .qr-code { text-align: center; }
+        .qr-code img { width: 160px; border-radius: 8px; }
+
+        /* ── Two-col grid ── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.7rem; }
+            .section { padding: 1.2rem; }
+            .price-grid { grid-template-columns: 1fr 1fr; }
+            .feature-grid, .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="lang-switcher">
+    <button class="lang-btn active" onclick="switchLang('zh-CN')">中文</button>
+    <button class="lang-btn" onclick="switchLang('en')">EN</button>
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<header class="hero">
+
+    <h1 class="lang-zh">🌟 YouTube 红人采集</h1>
+    <h1 class="lang-en">🌟 YouTube Influencer Crawler</h1>
+
+    <p class="lang-zh">关键词搜索 · 国家地区筛选 · 粉丝数范围过滤，一键采集油管红人频道、社媒链接和联系邮箱，出海品牌必备</p>
+    <p class="lang-en">Search by keyword, country, and follower range. Export YouTube influencer channels, social links, and contact emails — built for global brands.</p>
+
+    <div class="badges lang-zh">
+        <span class="badge">🖥️ Windows + macOS</span>
+        <span class="badge">🚀 无需 Python 环境</span>
+        <span class="badge">🔑 YouTube 官方 API</span>
+        <span class="badge">📦 开箱即用</span>
+    </div>
+    <div class="badges lang-en">
+        <span class="badge">🖥️ Windows + macOS</span>
+        <span class="badge">🚀 No Python required</span>
+        <span class="badge">🔑 Official YouTube API</span>
+        <span class="badge">📦 Ready to use</span>
+    </div>
+
+    <a class="cta-btn" href="https://mgnb.pro/product/youtube_user" target="_blank">
+        <span class="lang-zh">💰 立即开通使用</span>
+        <span class="lang-en">💰 Get Started Now</span>
+    </a>
+    <span class="cta-sub lang-zh">日卡 ¥39 起 · 一机一码 · 调用官方 API 无反爬风险</span>
+    <span class="cta-sub lang-en">Starting at ¥39/day · One device per license · Official API, no anti-scraping risk</span>
+</header>
+
+<div class="container">
+
+<!-- ═══════════ 简介 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">👋</span> 软件简介</span>
+        <span class="lang-en"><span class="icon">👋</span> Overview</span>
+    </h2>
+    <p class="lang-zh">
+        YouTube 作为全球头部视频平台，汇聚上亿日活用户及多元地区红人生态。<strong>youtube_user</strong> 是一款面向出海品牌的 YouTube 红人采集桌面 GUI 工具，通过调用 <strong>YouTube Data API v3</strong> 官方接口，支持按关键词、国家地区和粉丝数范围精准筛选红人，自动采集频道信息、社交链接和联系邮箱，导出为 CSV 文件。
+    </p>
+    <p class="lang-en">
+        YouTube is the world's largest video platform with billions of daily active users. <strong>youtube_user</strong> is a desktop GUI tool for influencer discovery, powered by the <strong>YouTube Data API v3</strong>. Search by keyword, country, and follower count to find the right influencers. Export channel info, social media links, and contact emails as CSV.
+    </p>
+
+    <div class="highlight-box lang-zh">
+        <p>🔑 <strong>需要 YouTube API Key：</strong>软件调用官方 API，需自行申请 API Key 后配置使用（免费额度充足）。详见下方「配置 API Key」步骤。</p>
+    </div>
+    <div class="highlight-box lang-en">
+        <p>🔑 <strong>YouTube API Key Required:</strong> This tool uses the official YouTube Data API. You'll need to apply for your own API key (free quota is generous). See the setup steps below.</p>
+    </div>
+</div>
+
+<!-- ═══════════ 核心筛选流程 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">🎯</span> 三大筛选条件，精准锁定红人</span>
+        <span class="lang-en"><span class="icon">🎯</span> 3 Filters to Pinpoint Influencers</span>
+    </h2>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4><span class="lang-zh">🔍 搜索关键词</span><span class="lang-en">🔍 Keywords</span></h4>
+            <p class="lang-zh">品牌名、竞品词、行业泛词，找到在该领域发内容的博主</p>
+            <p class="lang-en">Brand names, competitor names, industry terms — find creators in your niche</p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">🌍 国家/地区</span><span class="lang-en">🌍 Country/Region</span></h4>
+            <p class="lang-zh">支持中英文填写，内置标准国家名称表，精准定位目标市场</p>
+            <p class="lang-en">Chinese or English supported. Built-in country name reference. Target your market precisely.</p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">📊 粉丝数范围</span><span class="lang-en">📊 Follower Range</span></h4>
+            <p class="lang-zh">0~1万 素人到 500万+ 超级博主，按预算定位博主量级</p>
+            <p class="lang-en">From 0~10K nano to 5M+ mega — match influencers to your budget</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ 功能概览 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">⚙️</span> 功能概览</span>
+        <span class="lang-en"><span class="icon">⚙️</span> Features</span>
+    </h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">官方 API 采集</span><span class="lang-en">Official API</span></h4>
+            <p class="lang-zh">调用 YouTube Data API v3，无反爬风险，稳定可靠</p>
+            <p class="lang-en">Uses official YouTube Data API v3 — no scraping risk</p>
+        </div>
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">三条件筛选</span><span class="lang-en">3-Filter Search</span></h4>
+            <p class="lang-zh">关键词 + 国家 + 粉丝数，三维交叉锁定目标红人</p>
+            <p class="lang-en">Keyword × country × follower count — 3D targeting</p>
+        </div>
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">社媒链接采集</span><span class="lang-en">Social Media Links</span></h4>
+            <p class="lang-zh">自动提取 Telegram/WhatsApp/Twitter/Facebook/Instagram/TikTok</p>
+            <p class="lang-en">Extracts Telegram, WhatsApp, Twitter, Facebook, Instagram, TikTok links</p>
+        </div>
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">邮箱提取</span><span class="lang-en">Email Extraction</span></h4>
+            <p class="lang-zh">从频道 About 页面自动提取联系邮箱</p>
+            <p class="lang-en">Auto-extracts contact emails from channel About pages</p>
+        </div>
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">自动保存</span><span class="lang-en">Auto-save</span></h4>
+            <p class="lang-zh">每采集一条保存一次，异常中断不丢数据</p>
+            <p class="lang-en">Saves per entry — no data loss on interruption</p>
+        </div>
+        <div class="feature-card">
+            <h4>✅ <span class="lang-zh">运行日志</span><span class="lang-en">Activity Log</span></h4>
+            <p class="lang-zh">详细记录运行过程，方便事后排查</p>
+            <p class="lang-en">Detailed logs for troubleshooting</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ 采集架构 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">🏗️</span> 采集流程（两阶段）</span>
+        <span class="lang-en"><span class="icon">🏗️</span> Pipeline (Two Phases)</span>
+    </h2>
+    <div class="two-col">
+        <div class="feature-card">
+            <h4><span class="lang-zh">Phase 1：API 阶段</span><span class="lang-en">Phase 1: API</span></h4>
+            <p class="lang-zh">
+                ① 关键词搜索视频（每页50条）<br>
+                ② 提取频道 ID，去重<br>
+                ③ 批量调用 API 获取频道信息<br>
+                ④ 按粉丝数 / 国家过滤
+            </p>
+            <p class="lang-en">
+                ① Search videos by keyword (50/page)<br>
+                ② Extract & dedupe channel IDs<br>
+                ③ Batch API call for channel details<br>
+                ④ Filter by follower count & country
+            </p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">Phase 2：网页补抓</span><span class="lang-en">Phase 2: Web Scrape</span></h4>
+            <p class="lang-zh">
+                ⑤ 访问频道 About 页面<br>
+                ⑥ 正则提取联系邮箱<br>
+                ⑦ 正则提取社媒链接<br>
+                ⑧ 补充 API 无法获取的联系信息
+            </p>
+            <p class="lang-en">
+                ⑤ Visit channel About pages<br>
+                ⑥ Regex-extract emails<br>
+                ⑦ Regex-extract social links<br>
+                ⑧ Supplement API data with contact info
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ 快速开始 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">🚀</span> 快速开始</span>
+        <span class="lang-en"><span class="icon">🚀</span> Quick Start</span>
+    </h2>
+    <div class="steps lang-zh">
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>下载软件</h4><p>前往 <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">GitHub Releases</a> 下载最新版客户端</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>解压运行</h4><p>解压后双击运行对应系统的客户端（Windows 或 macOS）</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>配置 API Key</h4><p>申请 YouTube Data API v3 密钥，填写到 config_pub.json 中（<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">开通教程</a>）</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>设置筛选条件</h4><p>填入关键词、目标国家、粉丝数范围</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>开始采集</h4><p>点击「开始执行」，软件自动批量采集（建议打开网络代理）</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>查看结果</h4><p>在软件目录查看 CSV 结果和运行日志</p></div></div>
+    </div>
+    <div class="steps lang-en">
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Download</h4><p>Get the latest release from <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">GitHub Releases</a></p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Extract & Run</h4><p>Unzip and launch for your OS (Windows or macOS)</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Configure API Key</h4><p>Apply for a YouTube Data API v3 key and add it to config_pub.json (<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">tutorial</a>)</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Set Filters</h4><p>Enter keywords, target country, and follower count range</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Start Crawling</h4><p>Click "Start" — the tool will batch-crawl automatically (VPN recommended)</p></div></div>
+        <div class="step"><div class="step-num"></div><div class="step-body"><h4>View Results</h4><p>Open the CSV output and logs in the app directory</p></div></div>
+    </div>
+</div>
+
+<!-- ═══════════ 截图展示 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">🖼️</span> 功能展示</span>
+        <span class="lang-en"><span class="icon">🖼️</span> Screenshots</span>
+    </h2>
+    <div class="screenshots">
+        <div class="screenshot-card">
+            <img src="https://files.mdnice.com/user/32110/b77dfa83-ac34-4ee6-b709-d5c108ae7c7b.png" alt="软件运行界面" loading="lazy">
+            <div class="caption lang-zh">📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选</div>
+            <div class="caption lang-en">📥 GUI interface: keyword + country + follower count filtering</div>
+        </div>
+        <div class="screenshot-card">
+            <img src="https://files.mdnice.com/user/32110/b0040825-58ac-4dda-91ad-b5d92d5a4961.png" alt="筛选条件设置" loading="lazy">
+            <div class="caption lang-zh">🎯 筛选条件：精准定位目标市场红人</div>
+            <div class="caption lang-en">🎯 Filter panel: pinpoint influencers by market</div>
+        </div>
+        <div class="screenshot-card">
+            <img src="https://files.mdnice.com/user/32110/c43c1730-8782-422e-8eed-53feb73f1670.png" alt="采集结果1" loading="lazy">
+            <div class="caption lang-zh">📊 采集结果（上）：博主信息 + 社媒链接</div>
+            <div class="caption lang-en">📊 Output (1): channel info + social links</div>
+        </div>
+        <div class="screenshot-card">
+            <img src="https://files.mdnice.com/user/32110/3af9e3c3-1db1-4329-9bdd-6498c9561876.png" alt="采集结果2" loading="lazy">
+            <div class="caption lang-zh">📊 采集结果（下）：邮箱 + 联系方式</div>
+            <div class="caption lang-en">📊 Output (2): email + contact details</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ 筛选建议 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">💡</span> 筛选条件填写建议</span>
+        <span class="lang-en"><span class="icon">💡</span> Filter Strategy Guide</span>
+    </h2>
+
+    <h3 class="lang-zh">🔍 搜索关键词策略</h3>
+    <h3 class="lang-en">🔍 Keyword Strategy</h3>
+    <table class="tip-table">
+        <tr><th class="lang-zh">场景</th><th class="lang-en">Scenario</th><th class="lang-zh">关键词策略</th><th class="lang-en">Strategy</th><th class="lang-zh">效果</th><th class="lang-en">Result</th></tr>
+        <tr><td class="lang-zh">精准定位博主</td><td class="lang-en">Precise targeting</td><td class="lang-zh">品牌名 / 竞品词</td><td class="lang-en">Brand/competitor names</td><td class="lang-zh">找到领域内博主</td><td class="lang-en">Find niche creators</td></tr>
+        <tr><td class="lang-zh">泛采集</td><td class="lang-en">Broad crawl</td><td class="lang-zh">泛词如 "beauty", "gaming"</td><td class="lang-en">Broad terms: "beauty", "gaming"</td><td class="lang-zh">量大但博主类型杂</td><td class="lang-en">High volume, diverse</td></tr>
+        <tr><td class="lang-zh">蹭热点</td><td class="lang-en">Trend-jacking</td><td class="lang-zh">当下热门话题</td><td class="lang-en">Trending topics</td><td class="lang-zh">最新活跃博主</td><td class="lang-en">Recently active creators</td></tr>
+        <tr><td class="lang-zh">多词组合</td><td class="lang-en">Multi-keyword</td><td class="lang-zh">"beauty tutorial | skincare"</td><td class="lang-en">"beauty tutorial | skincare"</td><td class="lang-zh">一次采多个方向</td><td class="lang-en">Multi-angle in one pass</td></tr>
+    </table>
+
+    <h3 class="lang-zh">🌍 国家/地区策略</h3>
+    <h3 class="lang-en">🌍 Country Strategy</h3>
+    <table class="tip-table">
+        <tr><th class="lang-zh">场景</th><th class="lang-en">Scenario</th><th class="lang-zh">策略</th><th class="lang-en">Strategy</th><th class="lang-zh">作用</th><th class="lang-en">Purpose</th></tr>
+        <tr><td class="lang-zh">品牌出海</td><td class="lang-en">Global expansion</td><td class="lang-zh">目标市场（美国/英国/澳洲）</td><td class="lang-en">Target (US/UK/AU)</td><td class="lang-zh">精准对接本地博主</td><td class="lang-en">Local creator match</td></tr>
+        <tr><td class="lang-zh">跨文化内容</td><td class="lang-en">Cross-cultural</td><td class="lang-zh">日韩/东南亚</td><td class="lang-en">Japan/Korea/SE Asia</td><td class="lang-zh">对中国品牌感兴趣的博主</td><td class="lang-en">China-friendly creators</td></tr>
+        <tr><td class="lang-zh">规避竞争</td><td class="lang-en">Blue ocean</td><td class="lang-zh">小语种国家（法国/德国/巴西）</td><td class="lang-en">FR/DE/BR niche markets</td><td class="lang-zh">红海中的蓝海</td><td class="lang-en">Less competitive</td></tr>
+        <tr><td class="lang-zh">批量采集</td><td class="lang-en">Max coverage</td><td class="lang-zh">留空（不限制）</td><td class="lang-en">Leave blank</td><td class="lang-zh">最大范围，不漏博主</td><td class="lang-en">Widest reach</td></tr>
+    </table>
+
+    <h3 class="lang-zh">📊 粉丝数范围策略</h3>
+    <h3 class="lang-en">📊 Follower Range Strategy</h3>
+    <table class="tip-table">
+        <tr><th class="lang-zh">区间</th><th class="lang-en">Range</th><th class="lang-zh">类型</th><th class="lang-en">Type</th><th class="lang-zh">特点</th><th class="lang-en">Traits</th></tr>
+        <tr><td>0~1万</td><td>0~10K</td><td class="lang-zh">素人</td><td class="lang-en">Nano</td><td class="lang-zh">价格低、配合度高</td><td class="lang-en">Low cost, high flexibility</td></tr>
+        <tr><td>1万~10万</td><td>10K~100K</td><td class="lang-zh">腰部博主</td><td class="lang-en">Micro</td><td class="lang-zh">⭐ 性价比最高</td><td class="lang-en">⭐ Best value</td></tr>
+        <tr><td>10万~50万</td><td>100K~500K</td><td class="lang-zh">头部初阶</td><td class="lang-en">Mid-tier</td><td class="lang-zh">有影响力，报价适中</td><td class="lang-en">Solid influence, fair price</td></tr>
+        <tr><td>50万~500万</td><td>500K~5M</td><td class="lang-zh">KOL 顶流</td><td class="lang-en">Top KOL</td><td class="lang-zh">影响力大，报价高</td><td class="lang-en">High reach, high cost</td></tr>
+        <tr><td>500万+</td><td>5M+</td><td class="lang-zh">超级博主</td><td class="lang-en">Mega</td><td class="lang-zh">顶奢品牌专属</td><td class="lang-en">Premium brands only</td></tr>
+    </table>
+</div>
+
+<!-- ═══════════ 输出字段 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">📊</span> 输出字段（22个核心字段）</span>
+        <span class="lang-en"><span class="icon">📊</span> Output Fields (22 Core Fields)</span>
+    </h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4><span class="lang-zh">📋 搜索信息</span><span class="lang-en">📋 Search Info</span></h4>
+            <p class="lang-zh">搜索关键词、页码、视频标题、视频链接、播放数</p>
+            <p class="lang-en">Keywords, page number, video title, URL, view count</p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">👤 频道信息</span><span class="lang-en">👤 Channel Info</span></h4>
+            <p class="lang-zh">博主名称、频道 ID、频道链接、国家、粉丝数、视频总数、总观看、注册日期</p>
+            <p class="lang-en">Name, channel ID/URL, country, followers, total videos, views, registration date</p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">🔗 社媒链接</span><span class="lang-en">🔗 Social Links</span></h4>
+            <p class="lang-zh">Telegram、WhatsApp、Twitter、Facebook、Instagram、TikTok</p>
+            <p class="lang-en">Telegram, WhatsApp, Twitter, Facebook, Instagram, TikTok</p>
+        </div>
+        <div class="feature-card">
+            <h4><span class="lang-zh">📧 联系信息</span><span class="lang-en">📧 Contact</span></h4>
+            <p class="lang-zh">邮箱说明字段、更多邮箱</p>
+            <p class="lang-en">Email description, additional emails</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ 价格 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">💰</span> 价格说明</span>
+        <span class="lang-en"><span class="icon">💰</span> Pricing</span>
+    </h2>
+    <div class="price-grid">
+        <div class="price-card">
+            <div class="name lang-zh">日卡</div><div class="name lang-en">Daily</div>
+            <div class="duration lang-zh">使用期限 1 天</div><div class="duration lang-en">1 day</div>
+            <div class="money">¥39</div>
+            <div class="scene lang-zh">临时试用、小批量任务</div>
+            <div class="scene lang-en">Trial / small tasks</div>
+        </div>
+        <div class="price-card featured">
+            <div class="name lang-zh">月卡</div><div class="name lang-en">Monthly</div>
+            <div class="duration lang-zh">使用期限 1 个月</div><div class="duration lang-en">1 month</div>
+            <div class="money">¥149</div>
+            <div class="scene lang-zh">⭐ 短期采集需求</div>
+            <div class="scene lang-en">⭐ Short-term needs</div>
+        </div>
+        <div class="price-card">
+            <div class="name lang-zh">季卡</div><div class="name lang-en">Quarterly</div>
+            <div class="duration lang-zh">使用期限 3 个月</div><div class="duration lang-en">3 months</div>
+            <div class="money">¥399</div>
+            <div class="scene lang-zh">中期采集需求</div>
+            <div class="scene lang-en">Medium-term needs</div>
+        </div>
+        <div class="price-card">
+            <div class="name lang-zh">年卡</div><div class="name lang-en">Yearly</div>
+            <div class="duration lang-zh">使用期限 1 年</div><div class="duration lang-en">1 year</div>
+            <div class="money">¥799</div>
+            <div class="scene lang-zh">长期稳定使用</div>
+            <div class="scene lang-en">Long-term use</div>
+        </div>
+    </div>
+    <p style="text-align:center;margin-top:1.2rem;">
+        <a href="https://mgnb.pro/product/youtube_user" target="_blank" style="color:var(--red);font-weight:600;">
+            <span class="lang-zh">👉 立即开通</span>
+            <span class="lang-en">👉 Purchase Now</span>
+        </a>
+    </p>
+</div>
+
+<!-- ═══════════ 技术说明 ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">🛠️</span> 技术说明</span>
+        <span class="lang-en"><span class="icon">🛠️</span> Tech Stack</span>
+    </h2>
+    <p class="lang-zh" style="margin-bottom:1rem;">基于 Python 开发，调用 YouTube Data API v3 官方接口，两阶段采集架构：</p>
+    <p class="lang-en" style="margin-bottom:1rem;">Built with Python, powered by the official YouTube Data API v3 with two-phase pipeline:</p>
+    <div class="tech-grid">
+        <div class="tech-item"><strong>tkinter</strong><span class="lang-zh">GUI 界面</span><span class="lang-en">GUI</span></div>
+        <div class="tech-item"><strong>requests</strong><span class="lang-zh">API 请求</span><span class="lang-en">API client</span></div>
+        <div class="tech-item"><strong>threading</strong><span class="lang-zh">多线程</span><span class="lang-en">Threading</span></div>
+        <div class="tech-item"><strong>json</strong><span class="lang-zh">数据解析</span><span class="lang-en">Data parsing</span></div>
+        <div class="tech-item"><strong>csv</strong><span class="lang-zh">结果导出</span><span class="lang-en">CSV export</span></div>
+        <div class="tech-item"><strong>logging</strong><span class="lang-zh">日志记录</span><span class="lang-en">Activity log</span></div>
+    </div>
+</div>
+
+<!-- ═══════════ FAQ ═══════════ -->
+<div class="section">
+    <h2>
+        <span class="lang-zh"><span class="icon">❓</span> 常见问题</span>
+        <span class="lang-en"><span class="icon">❓</span> FAQ</span>
+    </h2>
+
+    <div class="faq-item lang-zh">
+        <div class="faq-q">🟢 是否需要安装 Python？</div>
+        <div class="faq-a">不需要。软件已打包为桌面客户端，下载对应系统版本后即可运行。</div>
+    </div>
+    <div class="faq-item lang-en">
+        <div class="faq-q">🟢 Do I need to install Python?</div>
+        <div class="faq-a">No. The software is packaged as a standalone desktop app — just download and run.</div>
+    </div>
+
+    <div class="faq-item lang-zh">
+        <div class="faq-q">🟢 为什么要自己申请 API Key？</div>
+        <div class="faq-a">软件调用 YouTube 官方 API（非爬虫模拟），每个用户需要用自己 Google 账号申请 API Key，免费额度每天 10,000 单位，日常采集完全够用。<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">👉 开通教程</a></div>
+    </div>
+    <div class="faq-item lang-en">
+        <div class="faq-q">🟢 Why do I need my own API key?</div>
+        <div class="faq-a">The tool uses YouTube's official API (not web scraping). Each user needs to apply for an API key with their Google account. Free quota is 10,000 units/day — plenty for daily use. <a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">👉 Setup guide</a></div>
+    </div>
+
+    <div class="faq-item lang-zh">
+        <div class="faq-q">🟢 使用官方 API 有反爬风险吗？</div>
+        <div class="faq-a">没有。软件 v2.0 已升级为调用 YouTube Data API v3 官方接口，合法合规，无反爬封号风险。</div>
+    </div>
+    <div class="faq-item lang-en">
+        <div class="faq-q">🟢 Is there any anti-scraping risk?</div>
+        <div class="faq-a">None. v2.0 uses the official YouTube Data API v3 — fully compliant, no risk of account bans.</div>
+    </div>
+
+    <div class="faq-item lang-zh">
+        <div class="faq-q">🟢 采集中断后数据会丢失吗？</div>
+        <div class="faq-a">不会。软件每采集一条数据就保存一次 CSV，即使网络异常或程序中断，已采集的数据不会丢失。</div>
+    </div>
+    <div class="faq-item lang-en">
+        <div class="faq-q">🟢 Will I lose data if crawling is interrupted?</div>
+        <div class="faq-a">No. Each entry is saved immediately to CSV — network issues or crashes won't wipe collected data.</div>
+    </div>
+</div>
+
+<!-- ═══════════ 底部 CTA ═══════════ -->
+<div class="footer-cta">
+    <h3 class="lang-zh">🎬 准备好挖掘海外红人了吗？</h3>
+    <h3 class="lang-en">🎬 Ready to discover global influencers?</h3>
+    <p class="lang-zh">日卡仅需 ¥39，立即体验 YouTube 红人批量采集</p>
+    <p class="lang-en">Start at just ¥39/day — unlock YouTube influencer discovery today</p>
+    <a href="https://mgnb.pro/product/youtube_user" target="_blank">
+        <span class="lang-zh">💰 立即开通使用</span>
+        <span class="lang-en">💰 Get Started Now</span>
+    </a>
+</div>
+
+<!-- ═══════════ Footer ═══════════ -->
+<div class="site-footer">
+    <p>© 2026 马哥python说 · Powered by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a></p>
+    <p style="margin-top:.3rem;">
+        <a href="https://github.com/mashukui/youtube_user" target="_blank">
+            <span class="lang-zh">GitHub 仓库</span><span class="lang-en">GitHub Repo</span>
+        </a> ·
+        <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">
+            <span class="lang-zh">版本下载</span><span class="lang-en">Releases</span>
+        </a> ·
+        <a href="https://mgnb.pro/product/youtube_user" target="_blank">
+            <span class="lang-zh">开通使用</span><span class="lang-en">Purchase</span>
+        </a>
+    </p>
+</div>
+
+</div>
+
+<script>
+function switchLang(lang) {
+    document.documentElement.setAttribute('lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        btn.classList.toggle('active',
+            btn.textContent.trim() === (lang === 'zh-CN' ? '中文' : 'EN'));
+    });
+    try { localStorage.setItem('ytb-user-lang', lang); } catch(e) {}
+}
+(function() {
+    var saved = 'zh-CN';
+    try { saved = localStorage.getItem('ytb-user-lang') || 'zh-CN'; } catch(e) {}
+    switchLang(saved);
+})();
+</script>
+
+</body>
+</html>
