@@ -229,15 +229,19 @@
             height: auto;
             display: block;
         }
-        .carousel-caption {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,.75));
+        .carousel-caption-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
             color: #fff;
-            padding: 2rem 1.5rem 1.2rem;
+            background: #1a1a2e;
+            border-top: 1px solid rgba(255,255,255,.12);
+            padding: .85rem 4.5rem;
             font-size: .95rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.45;
         }
         /* Arrows */
         .carousel-btn {
@@ -265,12 +269,15 @@
         /* Dots */
         .carousel-dots {
             position: absolute;
-            bottom: 3.5rem;
+            bottom: 4.6rem;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: .5rem;
             z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 0 1rem;
         }
         .carousel-dot {
             width: 10px;
@@ -619,23 +626,15 @@
         <div class="carousel-track" id="carouselTrack">
             <div class="carousel-slide">
                 <img src="images/gui.png" alt="软件运行界面">
-                <div class="carousel-caption lang-zh">📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选</div>
-                <div class="carousel-caption lang-en">📥 GUI interface: keyword + country + follower count filtering</div>
             </div>
             <div class="carousel-slide">
                 <img src="images/filter.png" alt="筛选条件设置">
-                <div class="carousel-caption lang-zh">🎯 筛选条件：精准定位目标市场红人</div>
-                <div class="carousel-caption lang-en">🎯 Filter panel: pinpoint influencers by market</div>
             </div>
             <div class="carousel-slide">
                 <img src="images/result1.png" alt="采集结果1">
-                <div class="carousel-caption lang-zh">📊 采集结果（上）：博主信息 + 社媒链接</div>
-                <div class="carousel-caption lang-en">📊 Output (1): channel info + social links</div>
             </div>
             <div class="carousel-slide">
                 <img src="images/result2.png" alt="采集结果2">
-                <div class="carousel-caption lang-zh">📊 采集结果（下）：邮箱 + 联系方式</div>
-                <div class="carousel-caption lang-en">📊 Output (2): email + contact details</div>
             </div>
         </div>
         <button class="carousel-btn carousel-prev" onclick="moveSlide(-1)">◀</button>
@@ -646,6 +645,7 @@
             <button class="carousel-dot" onclick="goToSlide(2)"></button>
             <button class="carousel-dot" onclick="goToSlide(3)"></button>
         </div>
+        <div class="carousel-caption-bar" id="carouselCaption">📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选</div>
     </div>
 </div>
 
@@ -859,11 +859,20 @@ var currentSlide = 0;
 var totalSlides = 4;
 var track = document.getElementById('carouselTrack');
 var dots = document.querySelectorAll('.carousel-dot');
+var caption = document.getElementById('carouselCaption');
 var autoTimer;
+var captions = [
+    { zh: '📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选', en: '📥 GUI interface: keyword + country + follower count filtering' },
+    { zh: '🎯 筛选条件：精准定位目标市场红人', en: '🎯 Filter panel: pinpoint influencers by market' },
+    { zh: '📊 采集结果（上）：博主信息 + 社媒链接', en: '📊 Output (1): channel info + social links' },
+    { zh: '📊 采集结果（下）：邮箱 + 联系方式', en: '📊 Output (2): email + contact details' }
+];
 
 function updateCarousel() {
     track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
     dots.forEach(function(d, i) { d.classList.toggle('active', i === currentSlide); });
+    var lang = document.documentElement.getAttribute('lang') === 'en' ? 'en' : 'zh';
+    caption.textContent = captions[currentSlide][lang];
 }
 function moveSlide(dir) {
     currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
