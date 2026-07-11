@@ -1,918 +1,979 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube 红人采集 - YouTube Influencer Crawler</title>
-    <style>
-        :root {
-            --red: #ff0000;
-            --dark: #1a1a2e;
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #333333;
-            --muted: #666666;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.7;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="YouTube 红人采集工具：按关键词、国家地区和订阅量筛选创作者，导出频道信息、社媒链接和公开联系方式。支持 Windows 和 macOS。">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://mashukui.github.io/youtube_user/">
 
-        /* ── Language Switcher ── */
-        .lang-switcher {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 1000;
-            display: flex;
-            gap: 4px;
-            background: rgba(255,255,255,.85);
-            backdrop-filter: blur(8px);
-            border-radius: 20px;
-            padding: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.12);
-        }
-        .lang-btn {
-            border: none;
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: .85rem;
-            font-weight: 600;
-            cursor: pointer;
-            background: transparent;
-            color: var(--muted);
-            transition: all .2s;
-            font-family: inherit;
-        }
-        .lang-btn.active {
-            background: var(--red);
-            color: #fff;
-        }
-        .lang-btn:hover:not(.active) {
-            background: #fee;
-            color: var(--red);
-        }
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="YouTube 红人采集工具">
+  <meta property="og:description" content="按关键词、国家地区和订阅量筛选 YouTube 创作者，导出 CSV 用于海外营销调研与频道建库。">
+  <meta property="og:url" content="https://mashukui.github.io/youtube_user/">
+  <meta property="og:image" content="https://mashukui.github.io/youtube_user/images/gui.png">
+  <meta property="og:image:width" content="1402">
+  <meta property="og:image:height" content="932">
+  <meta property="og:image:alt" content="YouTube 红人采集工具运行界面">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube 红人采集工具">
+  <meta name="twitter:description" content="筛选 YouTube 创作者，导出频道与公开联系信息。">
+  <meta name="twitter:image" content="https://mashukui.github.io/youtube_user/images/gui.png">
 
-        html[lang="zh-CN"] .lang-en { display: none !important; }
-        html[lang="en"] .lang-zh { display: none !important; }
+  <title>YouTube红人采集工具 | 创作者筛选与CSV导出</title>
 
-        /* ── Hero ── */
-        .hero {
-            background: linear-gradient(135deg, #cc0000 0%, #ff0000 50%, #ff4444 100%);
-            color: #fff;
-            padding: 4rem 2rem 3rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.2; }
-        }
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.8rem;
-            position: relative;
-            z-index: 1;
-        }
-        .hero p {
-            font-size: 1.15rem;
-            opacity: .92;
-            max-width: 700px;
-            margin: 0 auto 1.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        .hero .badges {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 1;
-        }
-        .hero .badge {
-            background: rgba(255,255,255,.2);
-            backdrop-filter: blur(6px);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: .9rem;
-        }
-        .hero .cta-btn {
-            display: inline-block;
-            margin-top: 1.8rem;
-            background: #fff;
-            color: var(--red);
-            padding: 14px 48px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.1rem;
-            position: relative;
-            z-index: 1;
-            transition: transform .15s, box-shadow .15s;
-        }
-        .hero .cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,.2);
-        }
-        .hero .cta-sub {
-            display: block;
-            margin-top: .5rem;
-            font-size: .85rem;
-            opacity: .75;
-            position: relative;
-            z-index: 1;
-        }
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "YouTube 红人采集工具",
+    "alternateName": "youtube_user",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Windows, macOS",
+    "softwareVersion": "2.1",
+    "description": "按关键词、国家地区和订阅量筛选 YouTube 创作者，导出频道信息、社媒链接和公开联系方式。",
+    "url": "https://mashukui.github.io/youtube_user/",
+    "downloadUrl": "https://github.com/mashukui/youtube_user/releases/latest",
+    "offers": {
+      "@type": "AggregateOffer",
+      "lowPrice": "39",
+      "highPrice": "799",
+      "priceCurrency": "CNY",
+      "offerCount": "4",
+      "url": "https://mgnb.pro/product/youtube_user"
+    }
+  }
+  </script>
 
-        .container {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 0 1.5rem 3rem;
-        }
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f7f7f5;
+      --surface: #ffffff;
+      --surface-soft: #f0f0ed;
+      --ink: #1b1b1b;
+      --muted: #626262;
+      --line: #deded9;
+      --line-strong: #c9c9c2;
+      --accent: #d9232e;
+      --accent-dark: #ac1822;
+      --accent-soft: #fff0f1;
+      --success: #176b43;
+      --success-soft: #eaf6ef;
+      --radius: 18px;
+      --shadow: 0 18px 50px rgba(20, 20, 20, .08);
+      --content: 1180px;
+    }
 
-        .section {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 1.5rem;
-            box-shadow: 0 1px 4px rgba(0,0,0,.06);
-        }
-        .section h2 {
-            font-size: 1.35rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-        .section h2 .icon { font-size: 1.3rem; }
-        .section h3 {
-            font-size: 1.1rem;
-            margin: 1.2rem 0 .5rem;
-            color: var(--dark);
-        }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.menu-open { overflow: hidden; }
+    img { max-width: 100%; height: auto; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; }
+    strong { font-weight: 700; }
+    [hidden] { display: none !important; }
 
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-        .feature-card {
-            background: #fafafa;
-            padding: 1.2rem;
-            border-radius: 10px;
-            border-left: 3px solid var(--red);
-        }
-        .feature-card h4 { font-size: 1rem; margin-bottom: .4rem; }
-        .feature-card p { font-size: .9rem; color: var(--muted); }
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--ink);
+      color: var(--surface);
+      text-decoration: none;
+      transform: translateY(-160%);
+      transition: transform .18s ease;
+    }
+    .skip-link:focus { transform: translateY(0); }
 
-        .steps { counter-reset: step; }
-        .step {
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-            padding: .8rem 0;
-            border-bottom: 1px solid #eee;
-        }
-        .step:last-child { border-bottom: none; }
-        .step-num {
-            counter-increment: step;
-            background: var(--red);
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: .9rem;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        .step-body h4 { font-size: 1rem; margin-bottom: .2rem; }
-        .step-body p { color: var(--muted); font-size: .9rem; }
-        .step-body a { color: var(--red); }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid rgba(222, 222, 217, .86);
+      background: rgba(247, 247, 245, .9);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .nav-shell {
+      width: min(var(--content), calc(100% - 40px));
+      min-height: 72px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      text-decoration: none;
+    }
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 24px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: -.06em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 22px;
+      margin-left: auto;
+    }
+    .nav-links a {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .mobile-language { display: none; }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+    .language-switch {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .language-switch button {
+      min-width: 42px;
+      min-height: 34px;
+      padding: 5px 9px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .language-switch button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--surface);
+    }
+    .menu-button {
+      display: none;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 21px;
+      cursor: pointer;
+    }
 
-        /* ── Carousel ── */
-        .carousel {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            background: #1a1a2e;
-        }
-        .carousel-track {
-            display: flex;
-            align-items: flex-start;
-            transition: transform .4s ease;
-        }
-        .carousel-slide {
-            min-width: 100%;
-            position: relative;
-            line-height: 0;
-        }
-        .carousel-slide img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .carousel-caption-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 52px;
-            color: #fff;
-            background: #1a1a2e;
-            border-top: 1px solid rgba(255,255,255,.12);
-            padding: .85rem 4.5rem;
-            font-size: .95rem;
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.45;
-        }
-        /* Arrows */
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,.85);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            cursor: pointer;
-            z-index: 10;
-            transition: background .2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--dark);
-            box-shadow: 0 2px 8px rgba(0,0,0,.15);
-        }
-        .carousel-btn:hover { background: #fff; }
-        .carousel-prev { left: 1rem; }
-        .carousel-next { right: 1rem; }
-        /* Dots */
-        .carousel-dots {
-            position: absolute;
-            bottom: 4.6rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: .5rem;
-            z-index: 10;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0 1rem;
-        }
-        .carousel-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.4);
-            border: none;
-            cursor: pointer;
-            transition: background .2s;
-            padding: 0;
-        }
-        .carousel-dot.active { background: #fff; }
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 19px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button:active { transform: translateY(0) scale(.98); }
+    .button-primary { background: var(--accent); color: #fff; }
+    .button-primary:hover { background: var(--accent-dark); }
+    .button-secondary { border-color: var(--line-strong); background: var(--surface); color: var(--ink); }
+    .button-secondary:hover { border-color: var(--ink); }
+    .button-quiet { border-color: rgba(255, 255, 255, .35); background: transparent; color: #fff; }
+    .button-small { min-height: 40px; padding: 10px 15px; font-size: 13px; }
 
-        /* ── Filter tips table ── */
-        .tip-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: .9rem;
-            margin: .8rem 0 1.2rem;
-        }
-        .tip-table th {
-            background: #fafafa;
-            padding: .6rem .8rem;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid var(--red);
-        }
-        .tip-table td {
-            padding: .6rem .8rem;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
-        }
-        .tip-table tr:hover td { background: #fff5f5; }
+    :focus-visible {
+      outline: 3px solid rgba(217, 35, 46, .32);
+      outline-offset: 3px;
+    }
 
-        .price-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: .8rem;
-        }
-        .price-card {
-            background: #fafafa;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            padding: 1.5rem 1rem;
-            text-align: center;
-            transition: border-color .2s;
-        }
-        .price-card:hover { border-color: var(--red); }
-        .price-card.featured {
-            border-color: var(--red);
-            background: #fff5f5;
-        }
-        .price-card .name { font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; }
-        .price-card .duration { font-size: .8rem; color: var(--muted); margin-bottom: .8rem; }
-        .price-card .money { font-size: 1.6rem; font-weight: 800; color: var(--red); }
-        .price-card .money span { font-size: .8rem; font-weight: 400; }
-        .price-card .scene { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+    .hero {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 76px 0 72px;
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(520px, 1.08fr);
+      align-items: center;
+      gap: 70px;
+    }
+    .eyebrow {
+      margin: 0 0 15px;
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 680px;
+      margin: 0;
+      font-size: clamp(43px, 5vw, 68px);
+      line-height: 1.04;
+      letter-spacing: -.06em;
+    }
+    .hero-copy {
+      max-width: 620px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 20px);
+      line-height: 1.65;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    .hero-media { min-width: 0; }
+    .product-frame {
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .frame-bar {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+    .frame-bar span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #c5c5bf;
+    }
+    .frame-label {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .product-frame img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1402 / 932;
+      object-fit: cover;
+      object-position: top left;
+    }
+    .media-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 13px 3px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
 
-        .faq-item {
-            border: 1px solid #eee;
-            border-radius: 10px;
-            margin-bottom: .8rem;
-            overflow: hidden;
-        }
-        .faq-q {
-            background: #fafafa;
-            padding: 1rem 1.2rem;
-            font-weight: 600;
-            font-size: .95rem;
-        }
-        .faq-a {
-            padding: 1rem 1.2rem;
-            font-size: .9rem;
-            color: var(--muted);
-            border-top: 1px solid #eee;
-        }
+    .requirements {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .requirements-inner {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0;
+      display: grid;
+      grid-template-columns: .82fr 1.18fr;
+      align-items: center;
+      gap: 58px;
+    }
+    .requirements h2 { margin: 0; font-size: 23px; line-height: 1.35; letter-spacing: -.03em; }
+    .requirements p { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+    .requirement-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .requirement-list li { min-width: 0; }
+    .requirement-list strong { display: block; font-size: 14px; }
+    .requirement-list span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: .6rem;
-        }
-        .tech-item {
-            background: #fafafa;
-            padding: .7rem 1rem;
-            border-radius: 8px;
-            text-align: center;
-            font-size: .85rem;
-        }
-        .tech-item strong { display: block; font-size: .95rem; margin-bottom: .1rem; }
+    .section-shell {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 104px 0;
+    }
+    .section-shell.compact { padding-top: 76px; padding-bottom: 76px; }
+    .section-heading { max-width: 760px; margin-bottom: 46px; }
+    .section-heading h2 {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 50px);
+      line-height: 1.1;
+      letter-spacing: -.05em;
+    }
+    .section-heading p { max-width: 680px; margin: 18px 0 0; color: var(--muted); font-size: 17px; }
 
-        .highlight-box {
-            background: #fff5f5;
-            border: 1px solid #ffcccc;
-            border-radius: 8px;
-            padding: 1rem 1.2rem;
-            margin: 1rem 0;
-        }
-        .highlight-box p { margin: 0; font-size: .9rem; }
+    .filter-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr);
+      align-items: start;
+      gap: 54px;
+    }
+    .screenshot-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(20, 20, 20, .06);
+    }
+    .screenshot-card img { display: block; width: 100%; }
+    .screenshot-card figcaption { padding: 15px 18px; color: var(--muted); font-size: 13px; }
+    .filter-points { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .filter-points li { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .filter-points li:first-child { padding-top: 0; }
+    .filter-points li:last-child { border-bottom: 0; }
+    .filter-points h3 { margin: 0; font-size: 20px; line-height: 1.35; letter-spacing: -.02em; }
+    .filter-points p { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
 
-        .footer-cta {
-            background: linear-gradient(135deg, #1a1a2e, #2d2d44);
-            color: #fff;
-            text-align: center;
-            padding: 3rem 2rem;
-            margin-top: 2rem;
-            border-radius: 12px;
-        }
-        .footer-cta h3 { font-size: 1.4rem; margin-bottom: .5rem; }
-        .footer-cta p { opacity: .8; margin-bottom: 1.5rem; }
-        .footer-cta a {
-            display: inline-block;
-            background: var(--red);
-            color: #fff;
-            padding: 14px 48px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: transform .15s;
-        }
-        .footer-cta a:hover { transform: scale(1.03); }
+    .workflow-section { background: #202020; color: #f7f7f5; }
+    .workflow-section .section-heading p { color: #bcbcb5; }
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      border-top: 1px solid #484844;
+      border-bottom: 1px solid #484844;
+    }
+    .workflow-item { min-width: 0; padding: 30px 26px; border-left: 1px solid #484844; }
+    .workflow-item:first-child { padding-left: 0; border-left: 0; }
+    .workflow-item:last-child { padding-right: 0; }
+    .workflow-kicker { display: block; margin-bottom: 28px; color: #f0aeb3; font-size: 12px; font-weight: 800; }
+    .workflow-item h3 { margin: 0; font-size: 19px; line-height: 1.4; }
+    .workflow-item p { margin: 10px 0 0; color: #bcbcb5; font-size: 14px; }
+    .workflow-note {
+      margin-top: 34px;
+      padding: 22px 24px;
+      border: 1px solid #4d4d48;
+      border-radius: 14px;
+      color: #d0d0c9;
+      font-size: 14px;
+    }
+    .workflow-note strong { color: #fff; }
 
-        .site-footer {
-            text-align: center;
-            padding: 2rem 0;
-            color: #aaa;
-            font-size: .85rem;
-        }
-        .site-footer a { color: #999; text-decoration: none; }
+    .output-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+      align-items: start;
+      gap: 70px;
+    }
+    .output-intro { position: sticky; top: 112px; }
+    .output-intro h2 { margin: 0; font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -.05em; }
+    .output-intro p { margin: 18px 0 0; color: var(--muted); }
+    .data-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .data-group {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .data-group:nth-child(1) { grid-row: span 2; background: var(--accent-soft); border-color: #f2c6ca; }
+    .data-group h3 { margin: 0; font-size: 18px; }
+    .data-group p { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+    .data-count { display: block; margin-top: 26px; color: var(--accent-dark); font-size: 38px; font-weight: 850; line-height: 1; letter-spacing: -.05em; }
+    .result-preview {
+      margin-top: 44px;
+      padding-top: 34px;
+      border-top: 1px solid var(--line-strong);
+    }
+    .result-preview-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .result-preview-header h3 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: -.03em;
+    }
+    .result-preview-header p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+    .result-stack {
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(20, 20, 20, .06);
+    }
+    .result-shot { margin: 0; }
+    .result-shot + .result-shot { border-top: 1px solid var(--line-strong); }
+    .result-image-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+    .result-image-scroll picture { display: block; min-width: 960px; }
+    .result-image-scroll img { display: block; width: 100%; height: auto; }
+    .result-shot figcaption {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
 
-        .qr-code { text-align: center; }
-        .qr-code img { width: 160px; border-radius: 8px; }
+    .demo-banner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 36px;
+      padding: 42px 46px;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #fff;
+    }
+    .demo-banner h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; letter-spacing: -.04em; }
+    .demo-banner p { max-width: 690px; margin: 12px 0 0; color: #ffe6e8; }
 
-        /* ── Two-col grid ── */
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-        @media (max-width: 600px) {
-            .hero h1 { font-size: 1.7rem; }
-            .section { padding: 1.2rem; }
-            .price-grid { grid-template-columns: 1fr 1fr; }
-            .feature-grid, .two-col { grid-template-columns: 1fr; }
-        }
-    </style>
+    .pricing-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 32px;
+      margin-bottom: 42px;
+    }
+    .pricing-head h2 { margin: 0; font-size: clamp(32px, 4vw, 50px); letter-spacing: -.05em; }
+    .pricing-head p { max-width: 500px; margin: 0; color: var(--muted); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .price-plan { position: relative; min-width: 0; padding: 30px 24px; border-left: 1px solid var(--line); }
+    .price-plan:first-child { border-left: 0; }
+    .price-plan h3 { margin: 0; font-size: 18px; }
+    .price { margin: 10px 0 0; color: var(--ink); font-size: 38px; font-weight: 850; line-height: 1.1; letter-spacing: -.05em; }
+    .price span { color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0; }
+    .price-plan p { margin: 13px 0 0; color: var(--muted); font-size: 14px; }
+    .license-note { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 30px; }
+    .license-note div { padding-top: 18px; border-top: 1px solid var(--line); }
+    .license-note strong { display: block; font-size: 14px; }
+    .license-note span { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; }
+    .pricing-action { display: flex; justify-content: center; margin-top: 34px; }
+
+    .faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 34px; }
+    details {
+      border-top: 1px solid var(--line-strong);
+      min-width: 0;
+    }
+    summary {
+      display: flex;
+      min-height: 68px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 17px 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.45;
+      list-style: none;
+      cursor: pointer;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; flex: 0 0 auto; color: var(--accent); font-size: 24px; font-weight: 450; }
+    details[open] summary::after { content: "−"; }
+    details p { margin: -2px 0 20px; color: var(--muted); font-size: 14px; }
+    details a { color: var(--accent-dark); font-weight: 700; }
+
+    .compliance {
+      display: grid;
+      grid-template-columns: .72fr 1.28fr;
+      gap: 70px;
+      padding-top: 56px;
+      border-top: 1px solid var(--line-strong);
+    }
+    .compliance h2 { margin: 0; font-size: 28px; line-height: 1.25; letter-spacing: -.04em; }
+    .compliance-copy { display: grid; gap: 18px; }
+    .compliance-copy p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .site-footer { background: #202020; color: #f7f7f5; }
+    .footer-inner {
+      width: min(var(--content), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 64px 0 34px;
+    }
+    .footer-top { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 32px; padding-bottom: 42px; }
+    .footer-top h2 { max-width: 720px; margin: 0; font-size: clamp(32px, 5vw, 54px); line-height: 1.08; letter-spacing: -.05em; }
+    .footer-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #484844;
+      color: #aaa9a3;
+      font-size: 12px;
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
+    .footer-links a { color: #d4d3cd; text-decoration: none; }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --page: #181818;
+        --surface: #222220;
+        --surface-soft: #292927;
+        --ink: #f2f2ed;
+        --muted: #adada7;
+        --line: #393936;
+        --line-strong: #50504b;
+        --accent: #e63b45;
+        --accent-dark: #ff7b83;
+        --accent-soft: #351f21;
+        --success: #67c695;
+        --success-soft: #1c3025;
+        --shadow: 0 18px 50px rgba(0, 0, 0, .25);
+      }
+      .site-header { background: rgba(24, 24, 24, .9); }
+      .requirements { background: #20201f; }
+      .workflow-section, .site-footer { background: #101010; }
+      .button-primary, .demo-banner { color: #fff; }
+      .language-switch button[aria-pressed="true"] { background: #f2f2ed; color: #181818; }
+    }
+
+    @media (max-width: 1040px) {
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 46px; padding-top: 62px; }
+      .hero-content { max-width: 760px; }
+      .hero-media { max-width: 820px; }
+      .requirements-inner { grid-template-columns: 1fr; gap: 26px; }
+      .filter-layout, .output-layout { grid-template-columns: 1fr; }
+      .output-intro { position: static; }
+      .workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workflow-item:nth-child(3) { padding-left: 0; border-left: 0; border-top: 1px solid #484844; }
+      .workflow-item:nth-child(4) { border-top: 1px solid #484844; }
+      .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .price-plan:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+      .price-plan:nth-child(4) { border-top: 1px solid var(--line); }
+      .compliance { grid-template-columns: 1fr; gap: 24px; }
+    }
+
+    @media (max-width: 720px) {
+      html { scroll-padding-top: 76px; }
+      .nav-shell { width: min(100% - 28px, var(--content)); min-height: 64px; gap: 12px; }
+      .brand span:last-child { display: none; }
+      .language-switch { display: none; }
+      .menu-button { display: grid; place-items: center; }
+      .nav-actions { margin-left: auto; }
+      .nav-links {
+        position: fixed;
+        inset: 65px 0 auto;
+        display: none;
+        padding: 20px 24px 26px;
+        border-bottom: 1px solid var(--line);
+        background: var(--page);
+        box-shadow: 0 24px 44px rgba(0, 0, 0, .12);
+      }
+      .nav-links.open { display: grid; gap: 4px; }
+      .nav-links a { padding: 11px 0; font-size: 16px; }
+      .nav-links .mobile-language { display: flex; gap: 8px; margin-top: 10px; }
+      .nav-links .mobile-language button {
+        min-height: 40px;
+        padding: 8px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .nav-links .mobile-language button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-dark); }
+      .hero,
+      .requirements-inner,
+      .section-shell,
+      .footer-inner { width: min(100% - 28px, var(--content)); }
+      .hero { padding: 48px 0 54px; gap: 38px; }
+      .eyebrow { margin-bottom: 12px; font-size: 11px; }
+      .hero h1 { font-size: clamp(38px, 12vw, 52px); }
+      .hero-copy { margin-top: 18px; font-size: 17px; }
+      .hero-actions { display: grid; grid-template-columns: 1fr; margin-top: 25px; }
+      .hero-actions .button { width: 100%; }
+      .frame-bar { min-height: 38px; }
+      .media-caption { display: block; }
+      .media-caption span:last-child { display: block; margin-top: 3px; }
+      .requirements-inner { padding: 26px 0; }
+      .requirement-list { grid-template-columns: 1fr; gap: 15px; }
+      .requirement-list li { padding-top: 14px; border-top: 1px solid var(--line); }
+      .section-shell { padding: 76px 0; }
+      .section-shell.compact { padding: 58px 0; }
+      .section-heading { margin-bottom: 30px; }
+      .section-heading h2 { font-size: 34px; }
+      .section-heading p { font-size: 16px; }
+      .filter-layout { gap: 34px; }
+      .workflow-grid { grid-template-columns: 1fr; }
+      .workflow-item,
+      .workflow-item:first-child,
+      .workflow-item:nth-child(3),
+      .workflow-item:last-child { padding: 24px 0; border-left: 0; border-top: 1px solid #484844; }
+      .workflow-item:first-child { border-top: 0; }
+      .workflow-kicker { margin-bottom: 12px; }
+      .output-layout { gap: 34px; }
+      .data-groups { grid-template-columns: 1fr; }
+      .data-group:nth-child(1) { grid-row: auto; }
+      .result-preview { margin-top: 34px; padding-top: 28px; }
+      .result-preview-header { display: block; }
+      .result-preview-header p { margin-top: 8px; text-align: left; }
+      .result-image-scroll picture { min-width: 920px; }
+      .demo-banner { grid-template-columns: 1fr; gap: 24px; padding: 32px 24px; }
+      .demo-banner .button { width: 100%; }
+      .pricing-head { display: block; }
+      .pricing-head p { margin-top: 14px; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .price-plan,
+      .price-plan:first-child,
+      .price-plan:nth-child(3),
+      .price-plan:nth-child(4) { padding: 25px 6px; border-left: 0; border-top: 1px solid var(--line); }
+      .price-plan:first-child { border-top: 0; }
+      .license-note { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; gap: 0; }
+      .footer-top { grid-template-columns: 1fr; align-items: start; }
+      .footer-actions { display: grid; justify-content: stretch; }
+      .footer-actions .button { width: 100%; }
+      .footer-bottom { display: block; }
+      .footer-links { margin-top: 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
 
-<div class="lang-switcher">
-    <button class="lang-btn active" onclick="switchLang('zh-CN')">中文</button>
-    <button class="lang-btn" onclick="switchLang('en')">EN</button>
-</div>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="#top" aria-label="YouTube 红人采集工具首页">
+        <span class="brand-mark" aria-hidden="true">YT</span>
+        <span>youtube_user</span>
+      </a>
 
-<!-- ═══════════ HERO ═══════════ -->
-<header class="hero">
+      <nav class="nav-links" id="primary-navigation" aria-label="主导航">
+        <a href="#features"><span data-zh="功能" data-en="Features">功能</span></a>
+        <a href="#workflow"><span data-zh="采集流程" data-en="Workflow">采集流程</span></a>
+        <a href="#output"><span data-zh="输出数据" data-en="Output">输出数据</span></a>
+        <a href="#pricing"><span data-zh="授权方案" data-en="Pricing">授权方案</span></a>
+        <a href="#faq"><span data-zh="常见问题" data-en="FAQ">常见问题</span></a>
+        <div class="mobile-language" aria-label="移动端语言切换">
+          <button type="button" data-language="zh-CN" aria-pressed="true">中文</button>
+          <button type="button" data-language="en" aria-pressed="false">EN</button>
+        </div>
+      </nav>
 
-    <h1 class="lang-zh">🌟 YouTube 红人采集</h1>
-    <h1 class="lang-en">🌟 YouTube Influencer Crawler</h1>
-
-    <p class="lang-zh">关键词搜索 · 国家地区筛选 · 粉丝数范围过滤，一键采集油管红人频道、社媒链接和联系邮箱，出海品牌必备</p>
-    <p class="lang-en">Search by keyword, country, and follower range. Export YouTube influencer channels, social links, and contact emails — built for global brands.</p>
-
-    <div class="badges lang-zh">
-        <span class="badge">🖥️ Windows + macOS</span>
-        <span class="badge">🚀 无需 Python 环境</span>
-        <span class="badge">🔑 YouTube 官方 API</span>
-        <span class="badge">📦 开箱即用</span>
-    </div>
-    <div class="badges lang-en">
-        <span class="badge">🖥️ Windows + macOS</span>
-        <span class="badge">🚀 No Python required</span>
-        <span class="badge">🔑 Official YouTube API</span>
-        <span class="badge">📦 Ready to use</span>
-    </div>
-
-    <a class="cta-btn" href="https://mgnb.pro/product/youtube_user" target="_blank">
-        <span class="lang-zh">💰 立即开通使用</span>
-        <span class="lang-en">💰 Get Started Now</span>
-    </a>
-    <span class="cta-sub lang-zh">日卡 ¥39 起 · 一机一码 · 调用官方 API 无反爬风险</span>
-    <span class="cta-sub lang-en">Starting at ¥39/day · One device per license · Official API, no anti-scraping risk</span>
-</header>
-
-<div class="container">
-
-<!-- ═══════════ 简介 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">👋</span> 软件简介</span>
-        <span class="lang-en"><span class="icon">👋</span> Overview</span>
-    </h2>
-    <p class="lang-zh">
-        YouTube 作为全球头部视频平台，汇聚上亿日活用户及多元地区红人生态。<strong>youtube_user</strong> 是一款面向出海品牌的 YouTube 红人采集桌面 GUI 工具，通过调用 <strong>YouTube Data API v3</strong> 官方接口，支持按关键词、国家地区和粉丝数范围精准筛选红人，自动采集频道信息、社交链接和联系邮箱，导出为 CSV 文件。
-    </p>
-    <p class="lang-en">
-        YouTube is the world's largest video platform with billions of daily active users. <strong>youtube_user</strong> is a desktop GUI tool for influencer discovery, powered by the <strong>YouTube Data API v3</strong>. Search by keyword, country, and follower count to find the right influencers. Export channel info, social media links, and contact emails as CSV.
-    </p>
-
-    <div class="highlight-box lang-zh">
-        <p>🔑 <strong>需要 YouTube API Key：</strong>软件调用官方 API，需自行申请 API Key 后配置使用（免费额度充足）。详见下方「配置 API Key」步骤。</p>
-    </div>
-    <div class="highlight-box lang-en">
-        <p>🔑 <strong>YouTube API Key Required:</strong> This tool uses the official YouTube Data API. You'll need to apply for your own API key (free quota is generous). See the setup steps below.</p>
-    </div>
-</div>
-
-<!-- ═══════════ 核心筛选流程 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">🎯</span> 三大筛选条件，精准锁定红人</span>
-        <span class="lang-en"><span class="icon">🎯</span> 3 Filters to Pinpoint Influencers</span>
-    </h2>
-
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h4><span class="lang-zh">🔍 搜索关键词</span><span class="lang-en">🔍 Keywords</span></h4>
-            <p class="lang-zh">品牌名、竞品词、行业泛词，找到在该领域发内容的博主</p>
-            <p class="lang-en">Brand names, competitor names, industry terms — find creators in your niche</p>
+      <div class="nav-actions">
+        <div class="language-switch" aria-label="语言切换">
+          <button type="button" data-language="zh-CN" aria-pressed="true">中文</button>
+          <button type="button" data-language="en" aria-pressed="false">EN</button>
         </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">🌍 国家/地区</span><span class="lang-en">🌍 Country/Region</span></h4>
-            <p class="lang-zh">支持中英文填写，内置标准国家名称表，精准定位目标市场</p>
-            <p class="lang-en">Chinese or English supported. Built-in country name reference. Target your market precisely.</p>
-        </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">📊 粉丝数范围</span><span class="lang-en">📊 Follower Range</span></h4>
-            <p class="lang-zh">0~1万 素人到 500万+ 超级博主，按预算定位博主量级</p>
-            <p class="lang-en">From 0~10K nano to 5M+ mega — match influencers to your budget</p>
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════ 功能概览 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">⚙️</span> 功能概览</span>
-        <span class="lang-en"><span class="icon">⚙️</span> Features</span>
-    </h2>
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">官方 API 采集</span><span class="lang-en">Official API</span></h4>
-            <p class="lang-zh">调用 YouTube Data API v3，无反爬风险，稳定可靠</p>
-            <p class="lang-en">Uses official YouTube Data API v3 — no scraping risk</p>
-        </div>
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">三条件筛选</span><span class="lang-en">3-Filter Search</span></h4>
-            <p class="lang-zh">关键词 + 国家 + 粉丝数，三维交叉锁定目标红人</p>
-            <p class="lang-en">Keyword × country × follower count — 3D targeting</p>
-        </div>
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">社媒链接采集</span><span class="lang-en">Social Media Links</span></h4>
-            <p class="lang-zh">自动提取 Telegram/WhatsApp/Twitter/Facebook/Instagram/TikTok</p>
-            <p class="lang-en">Extracts Telegram, WhatsApp, Twitter, Facebook, Instagram, TikTok links</p>
-        </div>
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">邮箱提取</span><span class="lang-en">Email Extraction</span></h4>
-            <p class="lang-zh">从频道 About 页面自动提取联系邮箱</p>
-            <p class="lang-en">Auto-extracts contact emails from channel About pages</p>
-        </div>
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">自动保存</span><span class="lang-en">Auto-save</span></h4>
-            <p class="lang-zh">每采集一条保存一次，异常中断不丢数据</p>
-            <p class="lang-en">Saves per entry — no data loss on interruption</p>
-        </div>
-        <div class="feature-card">
-            <h4>✅ <span class="lang-zh">运行日志</span><span class="lang-en">Activity Log</span></h4>
-            <p class="lang-zh">详细记录运行过程，方便事后排查</p>
-            <p class="lang-en">Detailed logs for troubleshooting</p>
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════ 采集架构 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">🏗️</span> 采集流程（两阶段）</span>
-        <span class="lang-en"><span class="icon">🏗️</span> Pipeline (Two Phases)</span>
-    </h2>
-    <div class="two-col">
-        <div class="feature-card">
-            <h4><span class="lang-zh">Phase 1：API 阶段</span><span class="lang-en">Phase 1: API</span></h4>
-            <p class="lang-zh">
-                ① 关键词搜索视频（每页50条）<br>
-                ② 提取频道 ID，去重<br>
-                ③ 批量调用 API 获取频道信息<br>
-                ④ 按粉丝数 / 国家过滤
-            </p>
-            <p class="lang-en">
-                ① Search videos by keyword (50/page)<br>
-                ② Extract & dedupe channel IDs<br>
-                ③ Batch API call for channel details<br>
-                ④ Filter by follower count & country
-            </p>
-        </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">Phase 2：网页补抓</span><span class="lang-en">Phase 2: Web Scrape</span></h4>
-            <p class="lang-zh">
-                ⑤ 访问频道 About 页面<br>
-                ⑥ 正则提取联系邮箱<br>
-                ⑦ 正则提取社媒链接<br>
-                ⑧ 补充 API 无法获取的联系信息
-            </p>
-            <p class="lang-en">
-                ⑤ Visit channel About pages<br>
-                ⑥ Regex-extract emails<br>
-                ⑦ Regex-extract social links<br>
-                ⑧ Supplement API data with contact info
-            </p>
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════ 快速开始 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">🚀</span> 快速开始</span>
-        <span class="lang-en"><span class="icon">🚀</span> Quick Start</span>
-    </h2>
-    <div class="steps lang-zh">
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>下载软件</h4><p>前往 <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">GitHub Releases</a> 下载最新版客户端</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>解压运行</h4><p>解压后双击运行对应系统的客户端（Windows 或 macOS）</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>配置 API Key</h4><p>申请 YouTube Data API v3 密钥，填写到 config_pub.json 中（<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">开通教程</a>）</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>设置筛选条件</h4><p>填入关键词、目标国家、粉丝数范围</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>开始采集</h4><p>点击「开始执行」，软件自动批量采集（建议打开网络代理）</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>查看结果</h4><p>在软件目录查看 CSV 结果和运行日志</p></div></div>
-    </div>
-    <div class="steps lang-en">
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Download</h4><p>Get the latest release from <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">GitHub Releases</a></p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Extract & Run</h4><p>Unzip and launch for your OS (Windows or macOS)</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Configure API Key</h4><p>Apply for a YouTube Data API v3 key and add it to config_pub.json (<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">tutorial</a>)</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Set Filters</h4><p>Enter keywords, target country, and follower count range</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>Start Crawling</h4><p>Click "Start" — the tool will batch-crawl automatically (VPN recommended)</p></div></div>
-        <div class="step"><div class="step-num"></div><div class="step-body"><h4>View Results</h4><p>Open the CSV output and logs in the app directory</p></div></div>
-    </div>
-</div>
-
-<!-- ═══════════ 截图展示 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">🖼️</span> 功能展示</span>
-        <span class="lang-en"><span class="icon">🖼️</span> Screenshots</span>
-    </h2>
-    <div class="carousel" id="carousel">
-        <div class="carousel-track" id="carouselTrack">
-            <div class="carousel-slide">
-                <img src="images/gui.png" alt="软件运行界面">
-            </div>
-            <div class="carousel-slide">
-                <img src="images/filter.png" alt="筛选条件设置">
-            </div>
-            <div class="carousel-slide">
-                <img src="images/result1.png" alt="采集结果1">
-            </div>
-            <div class="carousel-slide">
-                <img src="images/result2.png" alt="采集结果2">
-            </div>
-        </div>
-        <button class="carousel-btn carousel-prev" onclick="moveSlide(-1)">◀</button>
-        <button class="carousel-btn carousel-next" onclick="moveSlide(1)">▶</button>
-        <div class="carousel-dots" id="carouselDots">
-            <button class="carousel-dot active" onclick="goToSlide(0)"></button>
-            <button class="carousel-dot" onclick="goToSlide(1)"></button>
-            <button class="carousel-dot" onclick="goToSlide(2)"></button>
-            <button class="carousel-dot" onclick="goToSlide(3)"></button>
-        </div>
-        <div class="carousel-caption-bar" id="carouselCaption">📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选</div>
-    </div>
-</div>
-
-<!-- ═══════════ 筛选建议 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">💡</span> 筛选条件填写建议</span>
-        <span class="lang-en"><span class="icon">💡</span> Filter Strategy Guide</span>
-    </h2>
-
-    <h3 class="lang-zh">🔍 搜索关键词策略</h3>
-    <h3 class="lang-en">🔍 Keyword Strategy</h3>
-    <table class="tip-table">
-        <tr><th class="lang-zh">场景</th><th class="lang-en">Scenario</th><th class="lang-zh">关键词策略</th><th class="lang-en">Strategy</th><th class="lang-zh">效果</th><th class="lang-en">Result</th></tr>
-        <tr><td class="lang-zh">精准定位博主</td><td class="lang-en">Precise targeting</td><td class="lang-zh">品牌名 / 竞品词</td><td class="lang-en">Brand/competitor names</td><td class="lang-zh">找到领域内博主</td><td class="lang-en">Find niche creators</td></tr>
-        <tr><td class="lang-zh">泛采集</td><td class="lang-en">Broad crawl</td><td class="lang-zh">泛词如 "beauty", "gaming"</td><td class="lang-en">Broad terms: "beauty", "gaming"</td><td class="lang-zh">量大但博主类型杂</td><td class="lang-en">High volume, diverse</td></tr>
-        <tr><td class="lang-zh">蹭热点</td><td class="lang-en">Trend-jacking</td><td class="lang-zh">当下热门话题</td><td class="lang-en">Trending topics</td><td class="lang-zh">最新活跃博主</td><td class="lang-en">Recently active creators</td></tr>
-        <tr><td class="lang-zh">多词组合</td><td class="lang-en">Multi-keyword</td><td class="lang-zh">"beauty tutorial | skincare"</td><td class="lang-en">"beauty tutorial | skincare"</td><td class="lang-zh">一次采多个方向</td><td class="lang-en">Multi-angle in one pass</td></tr>
-    </table>
-
-    <h3 class="lang-zh">🌍 国家/地区策略</h3>
-    <h3 class="lang-en">🌍 Country Strategy</h3>
-    <table class="tip-table">
-        <tr><th class="lang-zh">场景</th><th class="lang-en">Scenario</th><th class="lang-zh">策略</th><th class="lang-en">Strategy</th><th class="lang-zh">作用</th><th class="lang-en">Purpose</th></tr>
-        <tr><td class="lang-zh">品牌出海</td><td class="lang-en">Global expansion</td><td class="lang-zh">目标市场（美国/英国/澳洲）</td><td class="lang-en">Target (US/UK/AU)</td><td class="lang-zh">精准对接本地博主</td><td class="lang-en">Local creator match</td></tr>
-        <tr><td class="lang-zh">跨文化内容</td><td class="lang-en">Cross-cultural</td><td class="lang-zh">日韩/东南亚</td><td class="lang-en">Japan/Korea/SE Asia</td><td class="lang-zh">对中国品牌感兴趣的博主</td><td class="lang-en">China-friendly creators</td></tr>
-        <tr><td class="lang-zh">规避竞争</td><td class="lang-en">Blue ocean</td><td class="lang-zh">小语种国家（法国/德国/巴西）</td><td class="lang-en">FR/DE/BR niche markets</td><td class="lang-zh">红海中的蓝海</td><td class="lang-en">Less competitive</td></tr>
-        <tr><td class="lang-zh">批量采集</td><td class="lang-en">Max coverage</td><td class="lang-zh">留空（不限制）</td><td class="lang-en">Leave blank</td><td class="lang-zh">最大范围，不漏博主</td><td class="lang-en">Widest reach</td></tr>
-    </table>
-
-    <h3 class="lang-zh">📊 粉丝数范围策略</h3>
-    <h3 class="lang-en">📊 Follower Range Strategy</h3>
-    <table class="tip-table">
-        <tr><th class="lang-zh">区间</th><th class="lang-en">Range</th><th class="lang-zh">类型</th><th class="lang-en">Type</th><th class="lang-zh">特点</th><th class="lang-en">Traits</th></tr>
-        <tr><td>0~1万</td><td>0~10K</td><td class="lang-zh">素人</td><td class="lang-en">Nano</td><td class="lang-zh">价格低、配合度高</td><td class="lang-en">Low cost, high flexibility</td></tr>
-        <tr><td>1万~10万</td><td>10K~100K</td><td class="lang-zh">腰部博主</td><td class="lang-en">Micro</td><td class="lang-zh">⭐ 性价比最高</td><td class="lang-en">⭐ Best value</td></tr>
-        <tr><td>10万~50万</td><td>100K~500K</td><td class="lang-zh">头部初阶</td><td class="lang-en">Mid-tier</td><td class="lang-zh">有影响力，报价适中</td><td class="lang-en">Solid influence, fair price</td></tr>
-        <tr><td>50万~500万</td><td>500K~5M</td><td class="lang-zh">KOL 顶流</td><td class="lang-en">Top KOL</td><td class="lang-zh">影响力大，报价高</td><td class="lang-en">High reach, high cost</td></tr>
-        <tr><td>500万+</td><td>5M+</td><td class="lang-zh">超级博主</td><td class="lang-en">Mega</td><td class="lang-zh">顶奢品牌专属</td><td class="lang-en">Premium brands only</td></tr>
-    </table>
-</div>
-
-<!-- ═══════════ 输出字段 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">📊</span> 输出字段（22个核心字段）</span>
-        <span class="lang-en"><span class="icon">📊</span> Output Fields (22 Core Fields)</span>
-    </h2>
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h4><span class="lang-zh">📋 搜索信息</span><span class="lang-en">📋 Search Info</span></h4>
-            <p class="lang-zh">搜索关键词、页码、视频标题、视频链接、播放数</p>
-            <p class="lang-en">Keywords, page number, video title, URL, view count</p>
-        </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">👤 频道信息</span><span class="lang-en">👤 Channel Info</span></h4>
-            <p class="lang-zh">博主名称、频道 ID、频道链接、国家、粉丝数、视频总数、总观看、注册日期</p>
-            <p class="lang-en">Name, channel ID/URL, country, followers, total videos, views, registration date</p>
-        </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">🔗 社媒链接</span><span class="lang-en">🔗 Social Links</span></h4>
-            <p class="lang-zh">Telegram、WhatsApp、Twitter、Facebook、Instagram、TikTok</p>
-            <p class="lang-en">Telegram, WhatsApp, Twitter, Facebook, Instagram, TikTok</p>
-        </div>
-        <div class="feature-card">
-            <h4><span class="lang-zh">📧 联系信息</span><span class="lang-en">📧 Contact</span></h4>
-            <p class="lang-zh">邮箱说明字段、更多邮箱</p>
-            <p class="lang-en">Email description, additional emails</p>
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════ 价格 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">💰</span> 价格说明</span>
-        <span class="lang-en"><span class="icon">💰</span> Pricing</span>
-    </h2>
-    <div class="price-grid">
-        <div class="price-card">
-            <div class="name lang-zh">日卡</div><div class="name lang-en">Daily</div>
-            <div class="duration lang-zh">使用期限 1 天</div><div class="duration lang-en">1 day</div>
-            <div class="money">¥39</div>
-            <div class="scene lang-zh">临时试用、小批量任务</div>
-            <div class="scene lang-en">Trial / small tasks</div>
-        </div>
-        <div class="price-card featured">
-            <div class="name lang-zh">月卡</div><div class="name lang-en">Monthly</div>
-            <div class="duration lang-zh">使用期限 1 个月</div><div class="duration lang-en">1 month</div>
-            <div class="money">¥149</div>
-            <div class="scene lang-zh">⭐ 短期采集需求</div>
-            <div class="scene lang-en">⭐ Short-term needs</div>
-        </div>
-        <div class="price-card">
-            <div class="name lang-zh">季卡</div><div class="name lang-en">Quarterly</div>
-            <div class="duration lang-zh">使用期限 3 个月</div><div class="duration lang-en">3 months</div>
-            <div class="money">¥399</div>
-            <div class="scene lang-zh">中期采集需求</div>
-            <div class="scene lang-en">Medium-term needs</div>
-        </div>
-        <div class="price-card">
-            <div class="name lang-zh">年卡</div><div class="name lang-en">Yearly</div>
-            <div class="duration lang-zh">使用期限 1 年</div><div class="duration lang-en">1 year</div>
-            <div class="money">¥799</div>
-            <div class="scene lang-zh">长期稳定使用</div>
-            <div class="scene lang-en">Long-term use</div>
-        </div>
-    </div>
-    <p style="text-align:center;margin-top:1.2rem;">
-        <a href="https://mgnb.pro/product/youtube_user" target="_blank" style="color:var(--red);font-weight:600;">
-            <span class="lang-zh">👉 立即开通</span>
-            <span class="lang-en">👉 Purchase Now</span>
+        <a class="button button-primary button-small" href="https://github.com/mashukui/youtube_user/releases/latest" target="_blank" rel="noopener noreferrer">
+          <span data-zh="下载" data-en="Download">下载</span>
         </a>
-    </p>
-</div>
-
-<!-- ═══════════ 技术说明 ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">🛠️</span> 技术说明</span>
-        <span class="lang-en"><span class="icon">🛠️</span> Tech Stack</span>
-    </h2>
-    <p class="lang-zh" style="margin-bottom:1rem;">基于 Python 开发，调用 YouTube Data API v3 官方接口，两阶段采集架构：</p>
-    <p class="lang-en" style="margin-bottom:1rem;">Built with Python, powered by the official YouTube Data API v3 with two-phase pipeline:</p>
-    <div class="tech-grid">
-        <div class="tech-item"><strong>tkinter</strong><span class="lang-zh">GUI 界面</span><span class="lang-en">GUI</span></div>
-        <div class="tech-item"><strong>requests</strong><span class="lang-zh">API 请求</span><span class="lang-en">API client</span></div>
-        <div class="tech-item"><strong>threading</strong><span class="lang-zh">多线程</span><span class="lang-en">Threading</span></div>
-        <div class="tech-item"><strong>json</strong><span class="lang-zh">数据解析</span><span class="lang-en">Data parsing</span></div>
-        <div class="tech-item"><strong>csv</strong><span class="lang-zh">结果导出</span><span class="lang-en">CSV export</span></div>
-        <div class="tech-item"><strong>logging</strong><span class="lang-zh">日志记录</span><span class="lang-en">Activity log</span></div>
+        <button class="menu-button" type="button" aria-label="打开导航" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
+      </div>
     </div>
-</div>
+  </header>
 
-<!-- ═══════════ FAQ ═══════════ -->
-<div class="section">
-    <h2>
-        <span class="lang-zh"><span class="icon">❓</span> 常见问题</span>
-        <span class="lang-en"><span class="icon">❓</span> FAQ</span>
-    </h2>
+  <main id="main-content">
+    <section class="hero" id="top">
+      <div class="hero-content">
+        <p class="eyebrow" data-zh="YouTube 创作者筛选工具" data-en="YouTube creator discovery tool">YouTube 创作者筛选工具</p>
+        <h1 data-zh="找到合适的 YouTube 创作者" data-en="Find the right YouTube creators">&#25214;&#21040;&#21512;&#36866;&#30340; YouTube &#21019;&#20316;&#32773;</h1>
+        <p class="hero-copy" data-zh="按关键词、国家地区和订阅量筛选频道，导出频道信息、社媒链接和公开联系方式。" data-en="Filter channels by keyword, country and subscriber count. Export channel data, social links and publicly available contacts.">按关键词、国家地区和订阅量筛选频道，导出频道信息、社媒链接和公开联系方式。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://www.bilibili.com/video/BV1suDUBuEoi/" target="_blank" rel="noopener noreferrer">
+            <span data-zh="观看使用演示" data-en="Watch demo">观看使用演示</span>
+          </a>
+          <a class="button button-secondary" href="https://github.com/mashukui/youtube_user/releases/latest" target="_blank" rel="noopener noreferrer">
+            <span data-zh="下载最新版" data-en="Download latest">下载最新版</span>
+          </a>
+        </div>
+      </div>
 
-    <div class="faq-item lang-zh">
-        <div class="faq-q">🟢 是否需要安装 Python？</div>
-        <div class="faq-a">不需要。软件已打包为桌面客户端，下载对应系统版本后即可运行。</div>
+      <div class="hero-media">
+        <div class="product-frame">
+          <div class="frame-bar" aria-hidden="true"><span></span><span></span><span></span><small class="frame-label">youtube_user v2.1</small></div>
+          <picture>
+            <source srcset="images/gui.avif" type="image/avif">
+            <img src="images/gui.png" width="1402" height="932" alt="YouTube 红人采集工具运行界面，包含关键词、国家地区、订阅量和补抓设置" fetchpriority="high">
+          </picture>
+        </div>
+        <p class="media-caption"><span data-zh="真实软件界面" data-en="Real application interface">真实软件界面</span><span data-zh="结果边采集边保存" data-en="Results are saved continuously">结果边采集边保存</span></p>
+      </div>
+    </section>
+
+    <section class="requirements" aria-labelledby="requirements-title">
+      <div class="requirements-inner">
+        <div>
+          <h2 id="requirements-title" data-zh="使用前请先确认" data-en="Before you start">使用前请先确认</h2>
+          <p data-zh="这些是软件正常工作的必要条件。" data-en="These are required for normal operation.">这些是软件正常工作的必要条件。</p>
+        </div>
+        <ul class="requirement-list">
+          <li><strong>Windows + macOS</strong><span data-zh="已打包为桌面客户端，无需安装 Python。" data-en="Packaged desktop clients with no Python setup required.">已打包为桌面客户端，无需安装 Python。</span></li>
+          <li><strong data-zh="自备 API Key" data-en="Your own API key">自备 API Key</strong><span data-zh="需开启 YouTube Data API v3；v2.1 支持多 Key 轮换。" data-en="Enable YouTube Data API v3; v2.1 supports key rotation.">需开启 YouTube Data API v3；v2.1 支持多 Key 轮换。</span></li>
+          <li><strong data-zh="网络与补抓边界" data-en="Network and enrichment limits">网络与补抓边界</strong><span data-zh="需可访问 YouTube；公开联系方式受页面和平台规则影响。" data-en="YouTube must be accessible; public contacts depend on page and platform rules.">需可访问 YouTube；公开联系方式受页面和平台规则影响。</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section-shell" id="features" aria-labelledby="features-title">
+      <div class="section-heading">
+        <p class="eyebrow" data-zh="筛选方式" data-en="Filtering">筛选方式</p>
+        <h2 id="features-title" data-zh="三类条件，缩小创作者范围" data-en="Three filters to narrow your search">三类条件，缩小创作者范围</h2>
+        <p data-zh="关键词决定内容方向，国家地区限定目标市场，订阅量帮助匹配创作者量级。" data-en="Keywords define the niche, country focuses the market, and subscriber count helps match creator scale.">关键词决定内容方向，国家地区限定目标市场，订阅量帮助匹配创作者量级。</p>
+      </div>
+
+      <div class="filter-layout">
+        <figure class="screenshot-card">
+          <picture>
+            <source srcset="images/filter.avif" type="image/avif">
+            <img src="images/filter.png" width="1440" height="316" loading="lazy" decoding="async" alt="软件的关键词、国家地区、订阅量、补抓模式和页数设置">
+          </picture>
+          <figcaption data-zh="筛选条件和补抓开关均在一个界面完成。" data-en="Filters and optional enrichment are configured in one interface.">筛选条件和补抓开关均在一个界面完成。</figcaption>
+        </figure>
+        <ol class="filter-points">
+          <li><h3 data-zh="关键词" data-en="Keywords">关键词</h3><p data-zh="输入品牌名、竞品词或行业词，从相关视频中找到频道。" data-en="Use brand, competitor or industry terms to discover channels from relevant videos.">输入品牌名、竞品词或行业词，从相关视频中找到频道。</p></li>
+          <li><h3 data-zh="国家地区" data-en="Country and region">国家地区</h3><p data-zh="按频道公开展示的国家地区进行过滤，也可留空不限制。" data-en="Filter by the country shown on the channel, or leave blank for no restriction.">按频道公开展示的国家地区进行过滤，也可留空不限制。</p></li>
+          <li><h3 data-zh="订阅量范围" data-en="Subscriber range">订阅量范围</h3><p data-zh="设置最小值与最大值，从长尾创作者到大型频道按需筛选。" data-en="Set a minimum and maximum to target anything from long-tail creators to large channels.">设置最小值与最大值，从长尾创作者到大型频道按需筛选。</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
+      <div class="section-shell">
+        <div class="section-heading">
+          <h2 id="workflow-title" data-zh="数据从哪里来" data-en="Where the data comes from">数据从哪里来</h2>
+          <p data-zh="基础数据与补充信息来自不同阶段。页面不将二者混为“全部官方 API”。" data-en="Core data and enrichment come from separate stages. The optional page enrichment is not presented as official API data.">基础数据与补充信息来自不同阶段。页面不将二者混为“全部官方 API”。</p>
+        </div>
+        <div class="workflow-grid">
+          <article class="workflow-item"><span class="workflow-kicker">API</span><h3 data-zh="搜索相关视频" data-en="Search relevant videos">搜索相关视频</h3><p data-zh="通过 YouTube Data API v3 按关键词获取视频与频道线索。" data-en="Use YouTube Data API v3 to find videos and channel candidates by keyword.">通过 YouTube Data API v3 按关键词获取视频与频道线索。</p></article>
+          <article class="workflow-item"><span class="workflow-kicker">FILTER</span><h3 data-zh="去重并筛选频道" data-en="Deduplicate and filter">去重并筛选频道</h3><p data-zh="合并重复频道，根据国家地区与订阅量条件过滤。" data-en="Merge duplicate channels and filter by country and subscriber range.">合并重复频道，根据国家地区与订阅量条件过滤。</p></article>
+          <article class="workflow-item"><span class="workflow-kicker">OPTIONAL</span><h3 data-zh="补充公开页面信息" data-en="Enrich from public pages">补充公开页面信息</h3><p data-zh="开启补抓后，尝试从频道 About 页补充公开社媒链接与联系信息。" data-en="When enabled, attempt to add public social links and contacts from channel About pages.">开启补抓后，尝试从频道 About 页补充公开社媒链接与联系信息。</p></article>
+          <article class="workflow-item"><span class="workflow-kicker">CSV</span><h3 data-zh="边采集边保存" data-en="Save continuously">边采集边保存</h3><p data-zh="每获得一条有效结果即写入 CSV，日志同步记录运行过程。" data-en="Each valid result is written to CSV immediately while logs record progress.">每获得一条有效结果即写入 CSV，日志同步记录运行过程。</p></article>
+        </div>
+        <p class="workflow-note"><strong data-zh="结果边界：" data-en="Result limits:">结果边界：</strong><span data-zh="部分频道不公开国家地区、社媒链接或邮箱；API 配额、页面可访问性与平台规则也会影响采集数量。" data-en="Some channels do not publish country, social links or email. API quota, page availability and platform rules can also affect result volume.">部分频道不公开国家地区、社媒链接或邮箱；API 配额、页面可访问性与平台规则也会影响采集数量。</span></p>
+      </div>
+    </section>
+
+    <section class="section-shell" id="output" aria-labelledby="output-title">
+      <div class="output-layout">
+        <div class="output-intro">
+          <p class="eyebrow" data-zh="CSV 输出" data-en="CSV output">CSV 输出</p>
+          <h2 id="output-title" data-zh="从频道线索到公开联系入口" data-en="From channel discovery to public contact paths">从频道线索到公开联系入口</h2>
+          <p data-zh="导出结果可用于频道建库、海外营销调研和后续人工筛选。请以当前版本实际导出字段为准。" data-en="Use the export for channel databases, global marketing research and manual qualification. Actual fields may vary by version.">导出结果可用于频道建库、海外营销调研和后续人工筛选。请以当前版本实际导出字段为准。</p>
+        </div>
+        <div>
+          <div class="data-groups">
+            <article class="data-group"><h3 data-zh="频道基础信息" data-en="Channel basics">频道基础信息</h3><p data-zh="频道名称、ID、频道链接、国家地区、订阅量、视频总数、总播放量和注册日期。" data-en="Name, ID, URL, country, subscribers, video count, total views and registration date.">频道名称、ID、频道链接、国家地区、订阅量、视频总数、总播放量和注册日期。</p><span class="data-count">22</span><p data-zh="当前版本核心字段" data-en="core fields in the current version">当前版本核心字段</p></article>
+            <article class="data-group"><h3 data-zh="搜索来源" data-en="Search source">搜索来源</h3><p data-zh="搜索关键词、页码、视频标题、视频链接和当前播放量。" data-en="Keyword, page, video title, video URL and current view count.">搜索关键词、页码、视频标题、视频链接和当前播放量。</p></article>
+            <article class="data-group"><h3 data-zh="社媒链接" data-en="Social links">社媒链接</h3><p data-zh="Telegram、WhatsApp、X / Twitter、Facebook、Instagram 和 TikTok 等公开链接。" data-en="Public Telegram, WhatsApp, X / Twitter, Facebook, Instagram and TikTok links.">Telegram、WhatsApp、X / Twitter、Facebook、Instagram 和 TikTok 等公开链接。</p></article>
+            <article class="data-group"><h3 data-zh="公开联系方式" data-en="Public contacts">公开联系方式</h3><p data-zh="如频道主动展示且页面可正常访问，补抓模式会尝试提取邮箱。" data-en="When a channel publishes contact details and the page is accessible, enrichment attempts to extract email.">如频道主动展示且页面可正常访问，补抓模式会尝试提取邮箱。</p></article>
+          </div>
+        </div>
+      </div>
+      <div class="result-preview">
+        <div class="result-preview-header">
+          <h3 data-zh="采集结果展示" data-en="Collection result preview">采集结果展示</h3>
+          <p data-zh="完整 CSV 字段较宽，因此分为上下两张截图展示。手机端可左右滑动查看原始宽表。" data-en="The full CSV is wide, so it is shown in two screenshots. Swipe horizontally on mobile to inspect the original table.">完整 CSV 字段较宽，因此分为上下两张截图展示。手机端可左右滑动查看原始宽表。</p>
+        </div>
+        <div class="result-stack">
+          <figure class="result-shot">
+            <div class="result-image-scroll" tabindex="0" role="region" aria-label="采集结果前半部分，可横向滚动">
+              <picture>
+                <source srcset="images/result1.avif" type="image/avif">
+                <img src="images/result1.png" width="1440" height="577" loading="lazy" decoding="async" alt="YouTube 采集结果前半部分，包含搜索关键词、视频与频道信息">
+              </picture>
+            </div>
+            <figcaption data-zh="前半部分：搜索来源、视频数据与频道信息" data-en="First half: search source, video data and channel information">前半部分：搜索来源、视频数据与频道信息</figcaption>
+          </figure>
+          <figure class="result-shot">
+            <div class="result-image-scroll" tabindex="0" role="region" aria-label="采集结果后半部分，可横向滚动">
+              <picture>
+                <source srcset="images/result2.avif" type="image/avif">
+                <img src="images/result2.png" width="1440" height="530" loading="lazy" decoding="async" alt="YouTube 采集结果后半部分，包含社媒链接、订阅量、视频数、播放量、注册日期和邮箱">
+              </picture>
+            </div>
+            <figcaption data-zh="后半部分：社媒链接、频道规模与公开联系信息" data-en="Second half: social links, channel scale and public contact information">后半部分：社媒链接、频道规模与公开联系信息</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell compact" id="demo" aria-labelledby="demo-title">
+      <div class="demo-banner">
+        <div><h2 id="demo-title" data-zh="先看完整演示，再决定是否适合" data-en="Watch the full demo before deciding">先看完整演示，再决定是否适合</h2><p data-zh="演示包含筛选条件、采集过程和导出结果，便于购买前判断是否满足任务需求。" data-en="The demo covers filters, collection and exports so you can evaluate fit before purchasing.">演示包含筛选条件、采集过程和导出结果，便于购买前判断是否满足任务需求。</p></div>
+        <a class="button button-quiet" href="https://www.bilibili.com/video/BV1suDUBuEoi/" target="_blank" rel="noopener noreferrer"><span data-zh="观看演示" data-en="Watch demo">观看演示</span></a>
+      </div>
+    </section>
+
+    <section class="section-shell" id="pricing" aria-labelledby="pricing-title">
+      <div class="pricing-head">
+        <h2 id="pricing-title" data-zh="按使用周期选择授权" data-en="Choose a license by duration">按使用周期选择授权</h2>
+        <p data-zh="授权采用一机一码，单台电脑同时只运行一个软件实例。购买前请先查看演示与注意事项。" data-en="Licenses are bound to one device and support one running instance. Review the demo and requirements before purchase.">授权采用一机一码，单台电脑同时只运行一个软件实例。购买前请先查看演示与注意事项。</p>
+      </div>
+      <div class="pricing-grid" role="list" aria-label="授权方案">
+        <article class="price-plan" role="listitem"><h3 data-zh="日卡" data-en="Daily">日卡</h3><p class="price">¥39 <span data-zh="/ 1 天" data-en="/ 1 day">/ 1 天</span></p><p data-zh="用于临时任务或短时间验证需求。" data-en="For temporary tasks or short validation.">用于临时任务或短时间验证需求。</p></article>
+        <article class="price-plan" role="listitem"><h3 data-zh="月卡" data-en="Monthly">月卡</h3><p class="price">¥149 <span data-zh="/ 1 个月" data-en="/ 1 month">/ 1 个月</span></p><p data-zh="用于阶段性建库和集中筛选任务。" data-en="For focused discovery and database building.">用于阶段性建库和集中筛选任务。</p></article>
+        <article class="price-plan" role="listitem"><h3 data-zh="季卡" data-en="Quarterly">季卡</h3><p class="price">¥399 <span data-zh="/ 3 个月" data-en="/ 3 months">/ 3 个月</span></p><p data-zh="用于持续跟进多个市场或品类。" data-en="For ongoing work across markets or categories.">用于持续跟进多个市场或品类。</p></article>
+        <article class="price-plan" role="listitem"><h3 data-zh="年卡" data-en="Yearly">年卡</h3><p class="price">¥799 <span data-zh="/ 1 年" data-en="/ 1 year">/ 1 年</span></p><p data-zh="用于长期、周期性的创作者调研。" data-en="For recurring long-term creator research.">用于长期、周期性的创作者调研。</p></article>
+      </div>
+      <div class="license-note">
+        <div><strong data-zh="一机一码" data-en="One device">一机一码</strong><span data-zh="一个授权码只用于一台电脑。" data-en="One license key is valid for one computer.">一个授权码只用于一台电脑。</span></div>
+        <div><strong data-zh="不支持多开" data-en="Single instance">不支持多开</strong><span data-zh="单台电脑不同时运行多个实例。" data-en="One running application instance per computer.">单台电脑不同时运行多个实例。</span></div>
+        <div><strong data-zh="自备 API Key" data-en="Your API key">自备 API Key</strong><span data-zh="YouTube API 调用配额不包含在授权中。" data-en="YouTube API quota is not included in the license.">YouTube API 调用配额不包含在授权中。</span></div>
+      </div>
+      <div class="pricing-action"><a class="button button-primary" href="https://mgnb.pro/product/youtube_user" target="_blank" rel="noopener noreferrer"><span data-zh="开通授权" data-en="Activate license">开通授权</span></a></div>
+    </section>
+
+    <section class="section-shell" id="faq" aria-labelledby="faq-title">
+      <div class="section-heading"><h2 id="faq-title" data-zh="常见问题" data-en="Frequently asked questions">常见问题</h2><p data-zh="这些问题会直接影响使用结果，建议购买前阅读。" data-en="These points directly affect results. Please review them before purchase.">这些问题会直接影响使用结果，建议购买前阅读。</p></div>
+      <div class="faq-grid">
+        <div>
+          <details><summary data-zh="是否需要安装 Python？" data-en="Do I need Python?">是否需要安装 Python？</summary><p data-zh="不需要。软件已打包为 Windows 和 macOS 桌面客户端，下载对应版本后解压运行。" data-en="No. The application is packaged for Windows and macOS. Download the matching release, extract and run.">不需要。软件已打包为 Windows 和 macOS 桌面客户端，下载对应版本后解压运行。</p></details>
+          <details><summary data-zh="为什么要自己申请 API Key？" data-en="Why do I need my own API key?">为什么要自己申请 API Key？</summary><p><span data-zh="频道搜索和基础数据依赖 YouTube Data API v3。每个 Key 的配额由 Google 控制，任务量较大时可能耗尽当日配额。" data-en="Channel search and core data use YouTube Data API v3. Google controls each key's quota, which can be exhausted by large tasks.">频道搜索和基础数据依赖 YouTube Data API v3。每个 Key 的配额由 Google 控制，任务量较大时可能耗尽当日配额。</span> <a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank" rel="noopener noreferrer" data-zh="查看申请教程" data-en="Setup guide">查看申请教程</a></p></details>
+          <details><summary data-zh="v2.1 的多 API Key 轮换有什么作用？" data-en="What does API key rotation do in v2.1?">v2.1 的多 API Key 轮换有什么作用？</summary><p data-zh="当你配置多个有效 Key 时，软件可在配额切换场景中自动轮换。它不会增加单个 Key 的官方配额。" data-en="With multiple valid keys configured, the app can rotate between them when quota changes. It does not increase Google's quota for any individual key.">当你配置多个有效 Key 时，软件可在配额切换场景中自动轮换。它不会增加单个 Key 的官方配额。</p></details>
+          <details><summary data-zh="如何保管 API Key？" data-en="How should I protect my API key?">如何保管 API Key？</summary><p data-zh="API Key 属于敏感凭据，请勿上传到 GitHub、发送给他人或放入公开文档。建议定期查看 Google Cloud 中的调用量，发现异常后及时更换或撤销。" data-en="Treat API keys as sensitive credentials. Do not upload them to GitHub, send them to others or place them in public documents. Monitor usage in Google Cloud and rotate or revoke a key if activity looks unusual.">API Key 属于敏感凭据，请勿上传到 GitHub、发送给他人或放入公开文档。建议定期查看 Google Cloud 中的调用量，发现异常后及时更换或撤销。</p></details>
+        </div>
+        <div>
+          <details><summary data-zh="为什么有些频道没有邮箱或社媒链接？" data-en="Why are contacts missing for some channels?">为什么有些频道没有邮箱或社媒链接？</summary><p data-zh="只有频道主动公开展示，且 About 页可正常访问时，补抓模式才可能获得这些信息。补抓并不保证每个频道都有结果。" data-en="Enrichment only works when a channel publishes the information and its About page is accessible. It cannot guarantee contacts for every channel.">只有频道主动公开展示，且 About 页可正常访问时，补抓模式才可能获得这些信息。补抓并不保证每个频道都有结果。</p></details>
+          <details><summary data-zh="为什么实际结果少于预期？" data-en="Why are there fewer results than expected?">为什么实际结果少于预期？</summary><p data-zh="常见原因包括关键词结果有限、筛选条件过窄、频道未公开国家地区、API 配额不足或页面暂时不可访问。" data-en="Common causes include limited keyword results, narrow filters, hidden country data, insufficient API quota or temporary page access issues.">常见原因包括关键词结果有限、筛选条件过窄、频道未公开国家地区、API 配额不足或页面暂时不可访问。</p></details>
+          <details><summary data-zh="中断后已采集数据会丢失吗？" data-en="Will collected data be lost after interruption?">中断后已采集数据会丢失吗？</summary><p data-zh="软件按条写入 CSV，已经保存的数据不会因后续网络异常或任务中断而被整体丢失。建议仍在重要任务后及时备份结果。" data-en="Results are written to CSV per item, so saved rows are not wiped by later network errors or interruption. Back up important exports after each task.">软件按条写入 CSV，已经保存的数据不会因后续网络异常或任务中断而被整体丢失。建议仍在重要任务后及时备份结果。</p></details>
+          <details><summary data-zh="GitHub 仓库是否包含源代码？" data-en="Does the GitHub repository include source code?">GitHub 仓库是否包含源代码？</summary><p data-zh="不包含。该仓库用于产品说明、版本发布和客户端下载，软件为商业授权产品，不以开源项目形式发布。" data-en="No. The repository provides product documentation, releases and client downloads. The application is commercially licensed and is not published as an open-source project.">不包含。该仓库用于产品说明、版本发布和客户端下载，软件为商业授权产品，不以开源项目形式发布。</p></details>
+        </div>
+      </div>
+
+      <div class="compliance">
+        <h2 data-zh="使用边界与平台关系" data-en="Usage boundaries and platform relationship">使用边界与平台关系</h2>
+        <div class="compliance-copy">
+          <p data-zh="本工具用于合法合规的海外营销调研、频道建库和商务线索整理。请遵守 YouTube API Services Terms of Service、当地法律、数据保护要求与联系人反骚扰规则。" data-en="Use this tool for lawful global marketing research, channel databases and business lead organization. Follow YouTube API Services Terms of Service, local law, data protection requirements and anti-spam rules.">本工具用于合法合规的海外营销调研、频道建库和商务线索整理。请遵守 YouTube API Services Terms of Service、当地法律、数据保护要求与联系人反骚扰规则。</p>
+          <p data-zh="本软件与 YouTube、Google 不存在隶属、授权代理或官方合作关系。YouTube 和 Google 是其各自权利人的商标。" data-en="This software is not affiliated with, endorsed by or officially partnered with YouTube or Google. YouTube and Google are trademarks of their respective owners.">本软件与 YouTube、Google 不存在隶属、授权代理或官方合作关系。YouTube 和 Google 是其各自权利人的商标。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <h2 data-zh="先下载或看演示，再选择授权" data-en="Download or watch the demo before choosing a license">先下载或看演示，再选择授权</h2>
+        <div class="footer-actions">
+          <a class="button button-quiet" href="https://github.com/mashukui/youtube_user/releases/latest" target="_blank" rel="noopener noreferrer"><span data-zh="下载最新版" data-en="Download latest">下载最新版</span></a>
+          <a class="button button-primary" href="https://mgnb.pro/product/youtube_user" target="_blank" rel="noopener noreferrer"><span data-zh="开通授权" data-en="Activate license">开通授权</span></a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 马哥python说</span>
+        <div class="footer-links">
+          <a href="https://github.com/mashukui/youtube_user" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/mashukui/youtube_user/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+          <a href="https://www.bilibili.com/video/BV1suDUBuEoi/" target="_blank" rel="noopener noreferrer"><span data-zh="使用演示" data-en="Demo">使用演示</span></a>
+        </div>
+      </div>
     </div>
-    <div class="faq-item lang-en">
-        <div class="faq-q">🟢 Do I need to install Python?</div>
-        <div class="faq-a">No. The software is packaged as a standalone desktop app — just download and run.</div>
-    </div>
+  </footer>
 
-    <div class="faq-item lang-zh">
-        <div class="faq-q">🟢 为什么要自己申请 API Key？</div>
-        <div class="faq-a">软件调用 YouTube 官方 API（非爬虫模拟），每个用户需要用自己 Google 账号申请 API Key，免费额度每天 10,000 单位，日常采集完全够用。<a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">👉 开通教程</a></div>
-    </div>
-    <div class="faq-item lang-en">
-        <div class="faq-q">🟢 Why do I need my own API key?</div>
-        <div class="faq-a">The tool uses YouTube's official API (not web scraping). Each user needs to apply for an API key with their Google account. Free quota is 10,000 units/day — plenty for daily use. <a href="https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw" target="_blank">👉 Setup guide</a></div>
-    </div>
+  <script>
+    (function () {
+      var languageButtons = document.querySelectorAll('[data-language]');
+      var translatedElements = document.querySelectorAll('[data-zh][data-en]');
+      var menuButton = document.querySelector('.menu-button');
+      var navigation = document.getElementById('primary-navigation');
 
-    <div class="faq-item lang-zh">
-        <div class="faq-q">🟢 使用官方 API 有反爬风险吗？</div>
-        <div class="faq-a">没有。软件 v2.0 已升级为调用 YouTube Data API v3 官方接口，合法合规，无反爬封号风险。</div>
-    </div>
-    <div class="faq-item lang-en">
-        <div class="faq-q">🟢 Is there any anti-scraping risk?</div>
-        <div class="faq-a">None. v2.0 uses the official YouTube Data API v3 — fully compliant, no risk of account bans.</div>
-    </div>
+      function setLanguage(language) {
+        var selected = language === 'en' ? 'en' : 'zh-CN';
+        document.documentElement.lang = selected;
+        translatedElements.forEach(function (element) {
+          element.textContent = selected === 'en' ? element.getAttribute('data-en') : element.getAttribute('data-zh');
+        });
+        languageButtons.forEach(function (button) {
+          button.setAttribute('aria-pressed', String(button.getAttribute('data-language') === selected));
+        });
+        try { localStorage.setItem('youtube-user-language', selected); } catch (error) {}
+      }
 
-    <div class="faq-item lang-zh">
-        <div class="faq-q">🟢 采集中断后数据会丢失吗？</div>
-        <div class="faq-a">不会。软件每采集一条数据就保存一次 CSV，即使网络异常或程序中断，已采集的数据不会丢失。</div>
-    </div>
-    <div class="faq-item lang-en">
-        <div class="faq-q">🟢 Will I lose data if crawling is interrupted?</div>
-        <div class="faq-a">No. Each entry is saved immediately to CSV — network issues or crashes won't wipe collected data.</div>
-    </div>
-</div>
+      languageButtons.forEach(function (button) {
+        button.addEventListener('click', function () { setLanguage(button.getAttribute('data-language')); });
+      });
 
-<!-- ═══════════ 底部 CTA ═══════════ -->
-<div class="footer-cta">
-    <h3 class="lang-zh">🎬 准备好挖掘海外红人了吗？</h3>
-    <h3 class="lang-en">🎬 Ready to discover global influencers?</h3>
-    <p class="lang-zh">日卡仅需 ¥39，立即体验 YouTube 红人批量采集</p>
-    <p class="lang-en">Start at just ¥39/day — unlock YouTube influencer discovery today</p>
-    <a href="https://mgnb.pro/product/youtube_user" target="_blank">
-        <span class="lang-zh">💰 立即开通使用</span>
-        <span class="lang-en">💰 Get Started Now</span>
-    </a>
-</div>
+      menuButton.addEventListener('click', function () {
+        var isOpen = menuButton.getAttribute('aria-expanded') === 'true';
+        menuButton.setAttribute('aria-expanded', String(!isOpen));
+        menuButton.setAttribute('aria-label', isOpen ? '打开导航' : '关闭导航');
+        navigation.classList.toggle('open', !isOpen);
+        document.body.classList.toggle('menu-open', !isOpen);
+      });
 
-<!-- ═══════════ Footer ═══════════ -->
-<div class="site-footer">
-    <p>© 2026 马哥python说 · Powered by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a></p>
-    <p style="margin-top:.3rem;">
-        <a href="https://github.com/mashukui/youtube_user" target="_blank">
-            <span class="lang-zh">GitHub 仓库</span><span class="lang-en">GitHub Repo</span>
-        </a> ·
-        <a href="https://github.com/mashukui/youtube_user/releases/" target="_blank">
-            <span class="lang-zh">版本下载</span><span class="lang-en">Releases</span>
-        </a> ·
-        <a href="https://mgnb.pro/product/youtube_user" target="_blank">
-            <span class="lang-zh">开通使用</span><span class="lang-en">Purchase</span>
-        </a>
-    </p>
-</div>
+      navigation.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          menuButton.setAttribute('aria-expanded', 'false');
+          menuButton.setAttribute('aria-label', '打开导航');
+          navigation.classList.remove('open');
+          document.body.classList.remove('menu-open');
+        });
+      });
 
-</div>
-
-<script>
-var currentSlide = 0;
-var totalSlides = 4;
-var track = document.getElementById('carouselTrack');
-var dots = document.querySelectorAll('.carousel-dot');
-var caption = document.getElementById('carouselCaption');
-var autoTimer;
-var captions = [
-    { zh: '📥 GUI 运行界面：关键词 + 国家 + 粉丝数，三维筛选', en: '📥 GUI interface: keyword + country + follower count filtering' },
-    { zh: '🎯 筛选条件：精准定位目标市场红人', en: '🎯 Filter panel: pinpoint influencers by market' },
-    { zh: '📊 采集结果（上）：博主信息 + 社媒链接', en: '📊 Output (1): channel info + social links' },
-    { zh: '📊 采集结果（下）：邮箱 + 联系方式', en: '📊 Output (2): email + contact details' }
-];
-
-function updateCarousel() {
-    track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
-    dots.forEach(function(d, i) { d.classList.toggle('active', i === currentSlide); });
-    var lang = document.documentElement.getAttribute('lang') === 'en' ? 'en' : 'zh';
-    caption.textContent = captions[currentSlide][lang];
-}
-function moveSlide(dir) {
-    currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
-    updateCarousel();
-    resetAuto();
-}
-function goToSlide(n) {
-    currentSlide = n;
-    updateCarousel();
-    resetAuto();
-}
-function resetAuto() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(function() { moveSlide(1); }, 5000);
-}
-// Touch swipe
-var touchStartX = 0;
-track.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
-track.addEventListener('touchend', function(e) {
-    var diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) moveSlide(diff > 0 ? 1 : -1);
-});
-// Start
-autoTimer = setInterval(function() { moveSlide(1); }, 5000);
-
-/* ── Language switcher ── */
-function switchLang(lang) {
-    document.documentElement.setAttribute('lang', lang);
-    document.querySelectorAll('.lang-btn').forEach(function(btn) {
-        btn.classList.toggle('active',
-            btn.textContent.trim() === (lang === 'zh-CN' ? '中文' : 'EN'));
-    });
-    try { localStorage.setItem('ytb-user-lang', lang); } catch(e) {}
-}
-(function() {
-    var saved = 'zh-CN';
-    try { saved = localStorage.getItem('ytb-user-lang') || 'zh-CN'; } catch(e) {}
-    switchLang(saved);
-})();
-</script>
-
+      var savedLanguage = 'zh-CN';
+      try { savedLanguage = localStorage.getItem('youtube-user-language') || 'zh-CN'; } catch (error) {}
+      setLanguage(savedLanguage);
+    })();
+  </script>
 </body>
 </html>
