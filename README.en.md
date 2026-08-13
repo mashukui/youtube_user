@@ -229,7 +229,7 @@ Full software demo: [YouTube influencer collection software demo](https://www.bi
 Pricing:
 
 ```python
-Day pass: valid for 1 day, 39 CNY. Suitable for trials or temporary needs.
+Day pass: valid for 1 day, 9.9 CNY. Suitable for trials or temporary needs.
 Monthly pass: valid for 1 month, 149 CNY. Suitable for short-term collection needs.
 Quarterly pass: valid for 3 months, 399 CNY. Suitable for medium-term collection needs.
 Yearly pass: valid for 1 year, 799 CNY. Suitable for long-term use.
