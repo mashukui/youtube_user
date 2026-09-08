@@ -714,7 +714,7 @@
     .support-trigger:hover,
     .support-trigger:focus-visible,
     .support-menu.open .support-trigger {
-      color: var(--accent-dark);
+      color: var(--ink);
     }
 
     .support-popover {
@@ -801,6 +801,12 @@ var _hmt = _hmt || [];
         <a href="#output"><span data-zh="输出数据" data-en="Output">输出数据</span></a>
         <a href="#pricing"><span data-zh="授权方案" data-en="Pricing">授权方案</span></a>
         <a href="#faq"><span data-zh="常见问题" data-en="FAQ">常见问题</span></a>
+        <div class="support-menu">
+          <button class="support-trigger" type="button" aria-label="显示技术支持公众号" aria-controls="support-popover" aria-expanded="false"><span data-zh="技术支持" data-en="Support">技术支持</span></button>
+          <div class="support-popover" id="support-popover">
+            <img src="images/wechatv4.png" width="1146" height="392" alt="马哥公众号，扫码关注获取技术支持">
+          </div>
+        </div>
         <div class="mobile-language" aria-label="移动端语言切换">
           <button type="button" data-language="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-language="en" aria-pressed="false">EN</button>
@@ -811,12 +817,6 @@ var _hmt = _hmt || [];
         <div class="language-switch" aria-label="语言切换">
           <button type="button" data-language="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-language="en" aria-pressed="false">EN</button>
-        </div>
-        <div class="support-menu">
-          <button class="support-trigger" type="button" aria-label="显示技术支持公众号" aria-controls="support-popover" aria-expanded="false"><span data-zh="技术支持" data-en="Support">技术支持</span></button>
-          <div class="support-popover" id="support-popover">
-            <img src="images/wechatv4.png" width="1146" height="392" alt="马哥公众号，扫码关注获取技术支持">
-          </div>
         </div>
         <a class="button button-primary button-small" href="https://github.com/mashukui/youtube_user/releases/latest" target="_blank" rel="noopener noreferrer">
           <span data-zh="下载" data-en="Download">下载</span>
