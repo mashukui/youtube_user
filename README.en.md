@@ -1,4 +1,10 @@
+<div align="center">
+
 # youtube_user
+
+[![Release](https://img.shields.io/github/v/release/mashukui/youtube_user?style=flat)](https://github.com/mashukui/youtube_user/releases) [![Last Update](https://img.shields.io/github/release-date/mashukui/youtube_user?style=flat)](https://github.com/mashukui/youtube_user/releases) ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-blue?style=flat)
+
+</div>
 
 > 🔥 YouTube influencer discovery tool - an efficiency tool for global brands and cross-border marketing teams.
 >
@@ -14,7 +20,7 @@
 
 ## 1.1 Why This Tool Was Built
 
-![Collection target: YouTube influencers](https://files.mdnice.com/user/32110/9df21c30-9071-48b7-bbbe-165665742a07.png)
+![Collection target: YouTube influencers](docs/images/readme/ytu_01.png)
 
 YouTube is one of the world's largest video social platforms, with massive daily active users and a diverse creator ecosystem across regions. Accurate collection of creator data helps brands understand creator activity, evaluate commercial potential, and improve outreach efficiency.
 
@@ -26,15 +32,15 @@ Why v2.0? An earlier version used a browser automation framework. The current ve
 
 Software interface:
 
-![Software interface](https://files.mdnice.com/user/32110/b77dfa83-ac34-4ee6-b709-d5c108ae7c7b.png)
+![Software interface](docs/images/readme/ytu_02.png)
 
 ## 1.3 Result Preview
 
 Collection result 1: due to the large number of fields, the result is shown in two screenshots.
 
-![Result 1: first 10 fields](https://files.mdnice.com/user/32110/c43c1730-8782-422e-8eed-53feb73f1670.png)
+![Result 1: first 10 fields](docs/images/readme/ytu_03.png)
 
-![Result 2: remaining 12 fields](https://files.mdnice.com/user/32110/3af9e3c3-1db1-4329-9bdd-6498c9561876.png)
+![Result 2: remaining 12 fields](docs/images/readme/ytu_04.png)
 
 Clear result preview:
 
@@ -154,7 +160,7 @@ How to enable the API: [Step-by-step guide to enabling YouTube Data API v3](http
 
 After obtaining the key, put it into `config_pub.json` in the current directory:
 
-![Configure personal API key](https://files.mdnice.com/user/32110/3d586b34-a113-4f15-b7ab-89af7935acc2.png)
+![Configure personal API key](docs/images/readme/ytu_05.png)
 
 This config file contains two parameters. The second parameter is the API key. The first parameter, `wait_sec`, controls the request interval. The default is 1 second and can be adjusted as needed.
 
@@ -164,7 +170,7 @@ After configuring the key, you can start collecting data. Make sure your network
 
 In the software interface, fill in the filtering conditions you need:
 
-![Filtering conditions](https://files.mdnice.com/user/32110/b0040825-58ac-4dda-91ad-b5d92d5a4961.png)
+![Filtering conditions](docs/images/readme/ytu_06.png)
 
 Click the start button, and the software will automatically collect creator data in batches.
 
@@ -224,7 +230,7 @@ Full software demo: [YouTube influencer collection software demo](https://www.bi
 
 # 5. Pricing
 
-## 5.1 License Key Plans
+## 5.1 Account Plans
 
 Pricing:
 
@@ -239,7 +245,7 @@ Purchase page: https://mgnb.pro/product/youtube_user
 
 ## 5.2 One Device, One License
 
-To prevent unauthorized resale, the software uses a one-device-one-license mechanism. One license key can only be used on one computer.
+To prevent unauthorized resale, the software uses a one-device-one-license mechanism: one account can only be used on one computer. To switch devices, contact the [WeChat official account 老男孩的平凡之路](https://github.com/mashukui/mashukui/blob/main/wechat2.png) and request unbinding; after that you can log in on the new computer.
 
 ## 5.3 Multiple Instances
 
@@ -247,10 +253,27 @@ Only one software instance is allowed on one computer. Multiple concurrent insta
 
 ## 5.4 Maintenance
 
-The software is independently developed and maintained by the author, with long-term updates.
+The software is independently developed and maintained by the author, with long-term updates. During the license period, all future versions are freely available on [GitHub Releases](https://github.com/mashukui/youtube_user/releases).
 
-# 6. Get the Software
+# 6. Changelog
+
+| Version | Date | Notes |
+|---|---|---|
+| v2.1 | 2026-04-30 | Added multi-API-key rotation for 24/7 collection; fixed lag in the supplemental scraping mode |
+| v2.0 | 2026-04-10 | Switched to the official YouTube Data API v3; added user registration entry |
+| v1.8 | 2026-03-24 | Fixed the "channel icon not detected" issue |
+
+> For the full release history, see [Releases](https://github.com/mashukui/youtube_user/releases)
+
+# 7. Get the Software
 
 Reply `爬油管博主` in the WeChat official account `老男孩的平凡之路` to get the latest software package. [Download directly here](https://github.com/mashukui/youtube_user/releases)
 
 <img width="573" height="196" alt="二维码-公众号放底部v4" src="https://github.com/user-attachments/assets/19cd7f46-dc67-4b65-a176-f5000dfaed1b" />
+
+
+---
+
+<p align="center">
+More collection tools (Douyin / Xiaohongshu / Weibo / PGY / YouTube, 7 in total): <a href="https://mgnb.pro">马哥数据采集工坊 (mgnb.pro)</a>
+</p>

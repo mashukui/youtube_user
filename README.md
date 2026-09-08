@@ -1,4 +1,10 @@
+<div align="center">
+
 # youtube_user
+
+[![Release](https://img.shields.io/github/v/release/mashukui/youtube_user?style=flat)](https://github.com/mashukui/youtube_user/releases) [![最近更新](https://img.shields.io/github/release-date/mashukui/youtube_user?style=flat)](https://github.com/mashukui/youtube_user/releases) ![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%20%7C%20macOS-blue?style=flat)
+
+</div>
 > 🔥 YouTube红人采集神器 - 出海品牌必备效率提升工具
 > 
 > 💡 功能支持：✅根据关键词筛选红人 ✅根据国家地区筛选红人 ✅根据粉丝数范围筛选红人
@@ -12,7 +18,7 @@
 # 一、背景分析
 ## 1.1 开发背景
 
-![采集目标-油管红人](https://files.mdnice.com/user/32110/9df21c30-9071-48b7-bbbe-165665742a07.png)
+![采集目标-油管红人](docs/images/readme/ytu_01.png)
 
 YouTube 作为全球头部视频社交平台，汇聚上亿日活用户及多元地区红人生态，具备极高商业价值。精准采集平台用户数据，有助于深入洞察红人创作动态及商业潜力，推动高效业务合作。基于此需求，我独立开发了“油管博主采集软件v2.0”，基于 Python 技术栈实现全自动化数据采集。
 
@@ -20,15 +26,15 @@ YouTube 作为全球头部视频社交平台，汇聚上亿日活用户及多元
 
 ## 1.2 软件界面
 软件运行界面：
-![软件运行界面](https://files.mdnice.com/user/32110/b77dfa83-ac34-4ee6-b709-d5c108ae7c7b.png)
+![软件运行界面](docs/images/readme/ytu_02.png)
 
  
 ## 1.3 结果展示
 爬取结果1：（字段实在太多了，我分成2张图展示） 
-![结果一：前10字段](https://files.mdnice.com/user/32110/c43c1730-8782-422e-8eed-53feb73f1670.png)
+![结果一：前10字段](docs/images/readme/ytu_03.png)
 
  
-![结果二：后12字段](https://files.mdnice.com/user/32110/3af9e3c3-1db1-4329-9bdd-6498c9561876.png)
+![结果二：后12字段](docs/images/readme/ytu_04.png)
 
  
 爬取结果2：（清晰版）
@@ -134,7 +140,7 @@ def get_logger(self):
 开通方法：[手把手教你开通YouTube官方API接口(youtube data api v3)](https://mp.weixin.qq.com/s/cFQ8GM3EK5B448qLWytsBw)
 
 key开通之后，把它填到当前目录的《config_pub.json》中，如下：
-![配置个人API key](https://files.mdnice.com/user/32110/3d586b34-a113-4f15-b7ab-89af7935acc2.png)
+![配置个人API key](docs/images/readme/ytu_05.png)
 
  
 顺便说一句，这个配置文件有2个参数，第2个参数是配置key，不多说了。
@@ -142,7 +148,7 @@ key开通之后，把它填到当前目录的《config_pub.json》中，如下�
 ## 3.2 启动采集
 key配置好后，就可以采集了（记得打开网络，你懂得）
 软件界面上，填入你关心的条件：
-![筛选条件](https://files.mdnice.com/user/32110/b0040825-58ac-4dda-91ad-b5d92d5a4961.png)
+![筛选条件](docs/images/readme/ytu_06.png)
 
  
 点击开始执行按钮，软件就自动批量采集了。
@@ -193,7 +199,7 @@ ____
 # 四、演示视频
 软件使用过程完整演示视频：[【爬虫演示】油管红人采集软件](https://www.bilibili.com/video/BV1suDUBuEoi/)
 
-# 四、付费说明
+# 五、付费说明
 ## 4.1 账号说明
 费用如下：
 ```python
@@ -205,15 +211,32 @@ ____
 开通入口：https://mgnb.pro/product/youtube_user
 
 ## 4.2 一机一码
-为防止软件被恶意转卖，采用一机一码机制，一个账号只能在一台电脑运行、不可多电脑运行。
+为防止软件被恶意转卖，采用一机一码机制，一个账号只能在一台电脑运行、不可多电脑运行。如需更换设备，请联系[公众号「老男孩的平凡之路」](https://github.com/mashukui/mashukui/blob/main/wechat2.png)后台申请解绑，处理后即可在新电脑登录使用。
 
 ## 4.3 软件多开
 一台电脑仅允许运行一个软件，不支持软件多开。
 
 ## 4.4 软件维护
-软件由本人独立原创开发，长期维护更新，提供稳定运行。
+软件由本人独立原创开发，长期维护更新，提供稳定运行。授权有效期内，后续版本通过 [GitHub Releases](https://github.com/mashukui/youtube_user/releases) 免费更新。
 
-# 五、软件获取
+# 六、更新日志
+
+| 版本 | 发布日期 | 更新内容 |
+|---|---|---|
+| v2.1 | 2026-04-30 | 新增多 API Key 自动轮换，支持 7x24 小时不间断采集；修复补抓模式卡顿问题 |
+| v2.0 | 2026-04-10 | 改为 YouTube Data API v3 官方接口模式；新增用户注册入口 |
+| v1.8 | 2026-03-24 | 修复“频道图标未检测到”问题 |
+
+> 完整更新历史见 [Releases](https://github.com/mashukui/youtube_user/releases)
+
+# 七、软件获取
 公众号"**老男孩的平凡之路**"，后台回复"**爬油管博主**"获取最新版软件安装包。[点这里直接下载](https://github.com/mashukui/youtube_user/releases)
 
 <img width="573" height="196" alt="二维码-公众号放底部v4" src="https://github.com/user-attachments/assets/2ecd3416-446b-47b2-8378-3887a248b4a7" />
+
+
+---
+
+<p align="center">
+更多采集工具（抖音 / 小红书 / 微博 / 蒲公英 / 油管等 7 款）：<a href="https://mgnb.pro">马哥数据采集工坊</a>
+</p>
