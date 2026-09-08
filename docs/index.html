@@ -695,7 +695,85 @@
       html { scroll-behavior: auto; }
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
     }
-  </style>
+      .support-menu {
+      position: relative;
+      display: inline-flex;
+      color: var(--muted);
+    }
+
+    .support-trigger {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .support-trigger:hover,
+    .support-trigger:focus-visible,
+    .support-menu.open .support-trigger {
+      color: var(--accent-dark);
+    }
+
+    .support-popover {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      z-index: 100;
+      width: min(360px, calc(100vw - 32px));
+      padding: 10px;
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      line-height: 0;
+    }
+
+    .support-popover::before {
+      content: "";
+      position: absolute;
+      top: -7px;
+      right: 24px;
+      width: 12px;
+      height: 12px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+      background: var(--surface);
+      transform: rotate(45deg);
+    }
+
+    .support-popover::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 100%;
+      width: 100%;
+      height: 14px;
+    }
+
+    .support-popover img {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 9px;
+    }
+
+    .support-menu.open .support-popover,
+    .support-trigger:focus-visible + .support-popover {
+      display: block;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .support-menu:hover .support-popover {
+        display: block;
+      }
+    }
+</style>
   <!-- 百度统计 -->
   <script>
 var _hmt = _hmt || [];
@@ -733,6 +811,12 @@ var _hmt = _hmt || [];
         <div class="language-switch" aria-label="语言切换">
           <button type="button" data-language="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-language="en" aria-pressed="false">EN</button>
+        </div>
+        <div class="support-menu">
+          <button class="support-trigger" type="button" aria-label="显示技术支持公众号" aria-controls="support-popover" aria-expanded="false"><span data-zh="技术支持" data-en="Support">技术支持</span></button>
+          <div class="support-popover" id="support-popover">
+            <img src="images/wechatv4.png" width="1146" height="392" alt="马哥公众号，扫码关注获取技术支持">
+          </div>
         </div>
         <a class="button button-primary button-small" href="https://github.com/mashukui/youtube_user/releases/latest" target="_blank" rel="noopener noreferrer">
           <span data-zh="下载" data-en="Download">下载</span>
@@ -985,5 +1069,38 @@ var _hmt = _hmt || [];
       setLanguage(savedLanguage);
     })();
   </script>
+  <script>
+    (function() {
+      var menu = document.querySelector(".support-menu");
+      var trigger = document.querySelector(".support-trigger");
+      var hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+      trigger.addEventListener("click", function(event) {
+        if (hoverQuery.matches) {
+          return;
+        }
+
+        event.stopPropagation();
+        var isOpen = menu.classList.toggle("open");
+        trigger.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      document.addEventListener("click", function(event) {
+        if (!menu.contains(event.target)) {
+          menu.classList.remove("open");
+          trigger.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+          menu.classList.remove("open");
+          trigger.setAttribute("aria-expanded", "false");
+          trigger.blur();
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
